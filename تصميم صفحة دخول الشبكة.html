@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NET SAID - سعيد نت</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#e11d48',
+            primaryDark: '#be123c'
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(15,23,42,.08)',
+            redsoft: '0 14px 35px rgba(225,29,72,.22)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      transition: background-color .3s ease, color .3s ease;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .35s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-item.active {
+      color: #e11d48;
+      position: relative;
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      background: #e11d48;
+      border-radius: 999px;
+    }
+
+    .package-card.selected {
+      border-color: #e11d48 !important;
+      background: rgba(225,29,72,.07) !important;
+      box-shadow: 0 10px 24px rgba(225,29,72,.10);
+    }
+
+    .dark .package-card.selected {
+      background: rgba(225,29,72,.13) !important;
+    }
+
+    .input-field {
+      height: 52px;
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    }
+
+    .login-btn:hover {
+      filter: brightness(.97);
+    }
+
+    .social-icon {
+      transition: transform .2s ease, opacity .2s ease;
+    }
+
+    .social-icon:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    .message-show {
+      animation: popIn .25s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .loader-ring {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      border: 7px solid rgba(225,29,72,.15);
+      border-top-color: #e11d48;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+      box-shadow: 0 0 0 8px rgba(225,29,72,.04);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .success-check-wrap {
+      width: 100px;
+      height: 100px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(16,185,129,.10));
+      border: 1px solid rgba(34,197,94,.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .success-check-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle, rgba(34,197,94,.15), transparent 60%);
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%,100% { transform: scale(.9); opacity: .7; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .success-check {
+      font-size: 42px;
+      color: #16a34a;
+      z-index: 2;
+      animation: bounceIn .6s ease;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(.2); opacity: 0; }
+      60% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen pb-24">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-br from-primary to-rose-900 text-white px-6 pt-6 pb-7 rounded-b-[34px] shadow-2xl relative overflow-hidden mb-8">
+    <div class="absolute -top-16 -right-16 w-52 h-52 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-10 -left-10 w-36 h-36 bg-white/10 rounded-full blur-2xl"></div>
+
+    <div class="flex justify-between items-center relative z-10">
+      <button onclick="toggleTheme()" class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-all">
+        <i id="theme-icon" class="fas fa-moon text-base"></i>
+      </button>
+
+      <div class="text-center">
+        <h1 class="text-2xl font-black leading-none">سعيد نت</h1>
+        <p class="text-[10px] opacity-80 font-bold uppercase tracking-[.25em] mt-1">NET SAID NETWORK</p>
+      </div>
+
+      <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+        <i class="fas fa-wifi"></i>
+      </div>
+    </div>
+
+    <div class="text-center mt-6 relative z-10">
+      <div class="text-5xl font-black tracking-tight mb-1" id="clock">00:00</div>
+      <div class="text-xs font-medium opacity-90 mb-4" id="date">تحميل التاريخ...</div>
+
+      <div class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        <span class="text-[11px] font-bold">الشبكة متصلة الآن</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="px-5">
+
+    <!-- Login -->
+    <section id="login-tab" class="tab-content active">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-6 shadow-soft transition-all">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-11 h-11 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-primary">
+            <i class="fas fa-sign-in-alt text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-extrabold">تسجيل الدخول</h2>
+            <p class="text-[11px] text-slate-400">أدخل بيانات البطاقة للاتصال بالإنترنت</p>
+          </div>
+        </div>
+
+        <form id="login-form" class="space-y-4">
+          <div class="relative group">
+            <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"></i>
+            <input
+              id="username"
+              type="text"
+              placeholder="اسم المستخدم"
+              class="input-field w-full pr-12 pl-4 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-primary focus:bg-white dark:focus:bg-slate-900 outline-none transition-all font-bold text-sm"
+              autocomplete="username"
+            >
+          </div>
+
+          <div class="relative group">
+            <i class="fas fa-key absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"></i>
+            <input
+              id="password"
+              type="password"
+              placeholder="كلمة المرور"
+              class="input-field w-full pr-12 pl-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-primary focus:bg-white dark:focus:bg-slate-900 outline-none transition-all font-bold text-sm"
+              autocomplete="current-password"
+            >
+            <button type="button" onclick="togglePassword()" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary">
+              <i id="password-eye" class="fas fa-eye"></i>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between px-1">
+            <label for="save-data" class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="save-data" class="w-4 h-4 accent-primary cursor-pointer">
+              <span class="text-[11px] font-bold text-slate-500">حفظ اسم المستخدم</span>
+            </label>
+
+            <button type="button" onclick="fillDemo()" class="text-[11px] font-bold text-primary hover:underline">
+              تعبئة تجريبية
+            </button>
+          </div>
+
+          <button id="login-btn" type="submit" class="login-btn w-full text-white font-extrabold py-3.5 rounded-2xl shadow-redsoft transition-all transform active:scale-[.98] flex items-center justify-center gap-3 text-sm">
+            <span id="login-btn-text">تسجيل الدخول</span>
+            <i id="login-btn-icon" class="fas fa-arrow-left"></i>
+          </button>
+        </form>
+
+        <div id="login-message" class="hidden mt-4 rounded-2xl p-4 text-center text-sm font-bold"></div>
+      </div>
+    </section>
+
+    <!-- Loading Screen -->
+    <section id="loading-tab" class="tab-content">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-8 shadow-soft text-center">
+        <div class="loader-ring mb-6"></div>
+        <h2 class="text-xl font-black mb-2">جاري الاتصال بالشبكة</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">يرجى الانتظار قليلاً، يتم الآن التحقق من بيانات الدخول...</p>
+
+        <div class="mt-8 flex justify-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary animate-bounce"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-primary animate-bounce [animation-delay:.15s]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-primary animate-bounce [animation-delay:.3s]"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success Screen -->
+    <section id="success-tab" class="tab-content">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-8 shadow-soft text-center">
+        <div class="success-check-wrap mb-6">
+          <i class="fas fa-check success-check"></i>
+        </div>
+
+        <h2 class="text-2xl font-black text-green-600 mb-3">تم الاتصال بنجاح</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">تم الاتصال بالشبكة بنجاح، يمكنك الآن استخدام الإنترنت.</p>
+
+        <button onclick="retrySavedLogin()" class="text-primary font-extrabold underline text-sm">
+          لو ما اتصل اضغط هنا
+        </button>
+
+        <div class="mt-6">
+          <button onclick="goHome()" class="login-btn text-white font-bold px-6 py-3 rounded-2xl shadow-redsoft">
+            الرجوع للرئيسية
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages -->
+    <section id="packages-tab" class="tab-content">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-6 shadow-soft transition-all">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-11 h-11 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-primary">
+            <i class="fas fa-ticket-alt text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-extrabold">باقات الإنترنت</h2>
+            <p class="text-[11px] text-slate-400">الباقة المتوفرة حالياً</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div onclick="selectPackage(this)" class="package-card selected p-4 rounded-2xl border-2 border-rose-100 dark:border-slate-700 flex items-center bg-rose-50/40 dark:bg-slate-800/60 cursor-pointer transition-all">
+            <div class="w-11 h-11 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-primary shadow-sm ml-4">
+              <i class="fas fa-clock text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">بطاقة 8 ساعات</h3>
+              <p class="text-[11px] text-slate-500">سرعة فائقة واتصال مستقر</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 border-2 border-dashed border-rose-200 dark:border-slate-700 rounded-2xl text-center bg-rose-50/30 dark:bg-slate-800/30">
+          <p class="text-xs font-extrabold text-primary">يوجد لدينا سرعات فائقة للمحلات التجارية بأسعار تنافسية</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Points -->
+    <section id="points-tab" class="tab-content">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-6 shadow-soft transition-all">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-11 h-11 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-primary">
+            <i class="fas fa-map-marked-alt text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-extrabold">نقاط البيع</h2>
+            <p class="text-[11px] text-slate-400">أماكن بيع البطاقات في منطقتكم</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center text-primary">
+                <i class="fas fa-store text-sm"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">محمد هاني عاشور</h4>
+                <p class="text-[10px] text-slate-400">نقطة توزيع رئيسية</p>
+              </div>
+            </div>
+            <i class="fas fa-chevron-left text-slate-300 text-xs"></i>
+          </div>
+
+          <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center text-primary">
+                <i class="fas fa-store text-sm"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">شريف الميدنا</h4>
+                <p class="text-[10px] text-slate-400">نقطة توزيع معتمدة</p>
+              </div>
+            </div>
+            <i class="fas fa-chevron-left text-slate-300 text-xs"></i>
+          </div>
+
+          <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center text-primary">
+                <i class="fas fa-building text-sm"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">عمارة العشي</h4>
+                <p class="text-[10px] text-slate-400">نقطة بيع بطاقات</p>
+              </div>
+            </div>
+            <i class="fas fa-chevron-left text-slate-300 text-xs"></i>
+          </div>
+
+          <div class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center text-primary">
+                <i class="fas fa-charging-station text-sm"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">نقطة شحن قنديل</h4>
+                <p class="text-[10px] text-slate-400">عمارة العشي</p>
+              </div>
+            </div>
+            <i class="fas fa-chevron-left text-slate-300 text-xs"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section id="support-tab" class="tab-content">
+      <div class="bg-white dark:bg-slate-900 rounded-[30px] p-6 shadow-soft transition-all">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-11 h-11 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center text-primary">
+            <i class="fas fa-headset text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-extrabold">الدعم الفني</h2>
+            <p class="text-[11px] text-slate-400">نحن هنا لخدمتك دائماً</p>
+          </div>
+        </div>
+
+        <div class="text-center mb-8">
+          <p class="text-xs font-bold text-slate-400 mb-2">للدعم الفني المباشر</p>
+          <a href="tel:0595481419" class="text-3xl font-black text-primary tracking-wider">0595481419</a>
+        </div>
+
+        <div class="flex justify-center items-center gap-6 text-3xl">
+          <a href="tel:0595481419" class="social-icon text-primary" title="اتصال">
+            <i class="fas fa-phone-alt"></i>
+          </a>
+          <a href="https://wa.me/972595481419" class="social-icon text-green-600" title="واتساب">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/ii.kandel?igsh=MXEyajR1cXZpMXdsYw%3D%3D&utm_source=qr" class="social-icon text-pink-600" title="إنستغرام">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.facebook.com/share/1GuS9sf65u/?mibextid=wwXIfr" class="social-icon text-blue-600" title="فيسبوك">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-8 text-center text-slate-400 dark:text-slate-600 px-4">
+    <p class="text-[10px] font-bold tracking-widest uppercase">شبكة سعيد نت لخدمات الإنترنت</p>
+    <div class="flex justify-center gap-4 mt-3">
+      <i class="fas fa-shield-alt text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-user-shield text-xs"></i>
+    </div>
+    <p class="text-[8px] mt-4 opacity-50 font-mono">Designed by Abu Rakan 0567744484</p>
+  </footer>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 flex justify-around items-center px-4 z-[100] transition-colors">
+    <button onclick="showTab('login-tab', this)" class="nav-item active flex flex-col items-center gap-1 w-1/4">
+      <i class="fas fa-home text-lg"></i>
+      <span class="text-[10px] font-bold">الرئيسية</span>
+    </button>
+    <button onclick="showTab('packages-tab', this)" class="nav-item flex flex-col items-center gap-1 w-1/4 text-slate-400">
+      <i class="fas fa-ticket-alt text-lg"></i>
+      <span class="text-[10px] font-bold">الباقات</span>
+    </button>
+    <button onclick="showTab('points-tab', this)" class="nav-item flex flex-col items-center gap-1 w-1/4 text-slate-400">
+      <i class="fas fa-store text-lg"></i>
+      <span class="text-[10px] font-bold">الموزعون</span>
+    </button>
+    <button onclick="showTab('support-tab', this)" class="nav-item flex flex-col items-center gap-1 w-1/4 text-slate-400">
+      <i class="fas fa-headset text-lg"></i>
+      <span class="text-[10px] font-bold">الدعم</span>
+    </button>
+  </nav>
+
+  <script>
+    let lastLoginData = { username: '', password: '' };
+
+    function updateTime() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}:${m}`;
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('date').textContent = now.toLocaleDateString('ar-EG', options);
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const themeIcon = document.getElementById('theme-icon');
+
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+      }
+
+      const savedUser = localStorage.getItem('saved_username');
+      const saveChecked = localStorage.getItem('save_login_data') === 'true';
+
+      document.getElementById('username').value = savedUser || '';
+      document.getElementById('password').value = '';
+      document.getElementById('save-data').checked = saveChecked;
+    });
+
+    function showTab(tabId, btn = null) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+
+      if (btn) {
+        document.querySelectorAll('.nav-item').forEach(i => {
+          i.classList.remove('active');
+          i.classList.add('text-slate-400');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('text-slate-400');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goHome() {
+      const homeBtn = document.querySelectorAll('.nav-item')[0];
+      showTab('login-tab', homeBtn);
+    }
+
+    function selectPackage(el) {
+      document.querySelectorAll('.package-card').forEach(card => card.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const eye = document.getElementById('password-eye');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+      }
+    }
+
+    function fillDemo() {
+      document.getElementById('username').value = '0000';
+      document.getElementById('password').value = '0000';
+    }
+
+    function showMessage(type, text) {
+      const box = document.getElementById('login-message');
+      box.className = 'mt-4 rounded-2xl p-4 text-center text-sm font-bold message-show border';
+
+      if (type === 'success') {
+        box.classList.add('bg-green-50', 'text-green-700', 'dark:bg-green-900/20', 'dark:text-green-400', 'border-green-200', 'dark:border-green-800');
+      } else {
+        box.classList.add('bg-red-50', 'text-red-700', 'dark:bg-red-900/20', 'dark:text-red-400', 'border-red-200', 'dark:border-red-800');
+      }
+
+      box.textContent = text;
+      box.classList.remove('hidden');
+    }
+
+    function clearMessage() {
+      const box = document.getElementById('login-message');
+      box.className = 'hidden mt-4 rounded-2xl p-4 text-center text-sm font-bold';
+      box.textContent = '';
+    }
+
+    function setLoadingButton(loading) {
+      const btn = document.getElementById('login-btn');
+      const text = document.getElementById('login-btn-text');
+      const icon = document.getElementById('login-btn-icon');
+
+      if (loading) {
+        btn.disabled = true;
+        btn.classList.add('opacity-80');
+        text.textContent = 'جاري التحقق...';
+        icon.className = 'fas fa-spinner fa-spin';
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-80');
+        text.textContent = 'تسجيل الدخول';
+        icon.className = 'fas fa-arrow-left';
+      }
+    }
+
+    async function loginToMikrotik(username, password) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (username === '0000' && password === '0000') {
+            resolve({
+              success: true,
+              message: 'تم تسجيل الدخول بنجاح'
+            });
+          } else {
+            resolve({
+              success: false,
+              message: 'تسجيل خاطئ'
+            });
+          }
+        }, 1200);
+      });
+    }
+
+    async function performLogin(username, password) {
+      clearMessage();
+      setLoadingButton(true);
+
+      const saveData = document.getElementById('save-data').checked;
+
+      if (saveData && username) {
+        localStorage.setItem('saved_username', username);
+        localStorage.setItem('save_login_data', 'true');
+      } else {
+        localStorage.removeItem('saved_username');
+        localStorage.setItem('save_login_data', 'false');
+      }
+
+      lastLoginData.username = username;
+      lastLoginData.password = password;
+
+      const result = await loginToMikrotik(username, password);
+      setLoadingButton(false);
+
+      if (result.success) {
+        showTab('loading-tab');
+
+        setTimeout(() => {
+          showTab('success-tab');
+        }, 2200);
+      } else {
+        const homeBtn = document.querySelectorAll('.nav-item')[0];
+        showTab('login-tab', homeBtn);
+        document.getElementById('password').value = '';
+        showMessage('error', 'تسجيل خاطئ');
+        document.getElementById('password').focus();
+      }
+    }
+
+    async function retrySavedLogin() {
+      if (!lastLoginData.username || !lastLoginData.password) {
+        goHome();
+        showMessage('error', 'لا توجد بيانات محفوظة لإعادة المحاولة');
+        return;
+      }
+
+      showTab('loading-tab');
+      const result = await loginToMikrotik(lastLoginData.username, lastLoginData.password);
+
+      if (result.success) {
+        setTimeout(() => {
+          showTab('success-tab');
+        }, 1200);
+      } else {
+        const homeBtn = document.querySelectorAll('.nav-item')[0];
+        showTab('login-tab', homeBtn);
+        document.getElementById('password').value = '';
+        showMessage('error', 'تعذرت إعادة المحاولة، أدخل كلمة المرور مرة أخرى');
+      }
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        showMessage('error', 'يرجى إدخال اسم المستخدم وكلمة المرور');
+        if (!username) {
+          document.getElementById('username').focus();
+        } else {
+          document.getElementById('password').focus();
+        }
+        return;
+      }
+
+      await performLogin(username, password);
+    });
+  </script>
+</body>
+</html>
