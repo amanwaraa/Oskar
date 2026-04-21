@@ -1,0 +1,4750 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام إدارة المبيعات والعملاء</title>
+
+  <link rel="manifest" href="./manifest-fee.json" />
+  <meta name="theme-color" content="#dbeafe" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
+
+    :root{
+      --primary:#1d4ed8;
+      --primary-2:#2563eb;
+      --primary-3:#3b82f6;
+      --primary-soft:rgba(59,130,246,.12);
+      --danger:#dc2626;
+      --danger-soft:#fef2f2;
+      --success:#16a34a;
+      --success-soft:#f0fdf4;
+      --warning:#d97706;
+      --warning-soft:#fffbeb;
+      --dark:#0f172a;
+      --muted:#64748b;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --border:#e2e8f0;
+      --header-bg:rgba(239,246,255,.88);
+      --header-border:rgba(191,219,254,.9);
+      --fab-gradient-1:#2563eb;
+      --fab-gradient-2:#1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 24%),
+        radial-gradient(circle at top left, rgba(14,165,233,.06), transparent 26%),
+        linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
+      color: var(--dark);
+      font-family: 'Cairo', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hidden-force { display:none !important; }
+
+    .glass-header {
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--header-border);
+      box-shadow: 0 12px 32px rgba(15,23,42,.08);
+    }
+
+    .bottom-nav {
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(226,232,240,.9);
+      box-shadow: 0 -8px 24px rgba(15,23,42,.08);
+    }
+
+    .fancy-card {
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.72);
+      box-shadow: 0 12px 32px rgba(15,23,42,.06);
+    }
+
+    .section-card {
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.94));
+      border: 1px solid rgba(226,232,240,.88);
+      box-shadow: 0 12px 28px rgba(15,23,42,.05);
+      border-radius: 28px;
+    }
+
+    .card-shadow {
+      box-shadow: 0 18px 44px rgba(15,23,42,.12);
+    }
+
+    .btn {
+      transition: all .18s ease;
+      transform: translateY(0);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: scale(.985); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color:#fff;
+    }
+
+    .text-primary { color: var(--primary); }
+    .bg-primary-soft { background: var(--primary-soft); }
+
+    .input, .select, .textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      outline: none;
+      transition: .18s ease;
+      font-size: 14px;
+      color: var(--dark);
+    }
+
+    .input, .select {
+      padding: 12px 14px;
+      min-height: 48px;
+    }
+
+    .textarea {
+      padding: 12px 14px;
+      min-height: 104px;
+      resize: vertical;
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--primary-3);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-3) 20%, transparent);
+    }
+
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .badge-blue { background:rgba(59,130,246,.12); color:#1d4ed8; }
+    .badge-red { background:rgba(239,68,68,.12); color:#dc2626; }
+    .badge-green { background:rgba(34,197,94,.12); color:#15803d; }
+    .badge-yellow { background:rgba(245,158,11,.12); color:#b45309; }
+    .badge-slate { background:rgba(100,116,139,.12); color:#334155; }
+    .badge-purple { background:rgba(139,92,246,.12); color:#6d28d9; }
+
+    .stat-tile {
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.95));
+      border: 1px solid rgba(226,232,240,.86);
+      border-radius: 24px;
+      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+    }
+
+    .status-bar {
+      position: sticky;
+      top: 74px;
+      z-index: 45;
+      margin: 10px auto 0;
+      width: min(980px, calc(100% - 24px));
+      border-radius: 18px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 10px 30px rgba(15,23,42,.10);
+      border: 1px solid transparent;
+    }
+
+    .status-bar.show { display:flex; }
+    .status-bar.offline {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-color: #fde68a;
+    }
+    .status-bar.syncing {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+    .status-bar.synced {
+      background: #f0fdf4;
+      color: #15803d;
+      border-color: #bbf7d0;
+    }
+
+    .sync-progress-wrap{
+      margin-top:10px;
+      display:none;
+      align-items:center;
+      gap:12px;
+      width:100%;
+    }
+    .sync-progress-wrap.show{ display:flex; }
+
+    .sync-circle{
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      border:4px solid rgba(37,99,235,.15);
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+      flex-shrink:0;
+    }
+
+    .sync-progress-bar{
+      flex:1;
+      height:12px;
+      background:#dbeafe;
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .sync-progress-fill{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, var(--primary), var(--primary-2), var(--primary-3));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+
+    .sync-progress-text{
+      min-width:54px;
+      font-weight:900;
+      color:var(--primary);
+      text-align:left;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.48);
+      backdrop-filter: blur(6px);
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn .18s ease;
+    }
+
+    .modal-panel {
+      width: 100%;
+      max-width: 920px;
+      max-height: 90vh;
+      overflow: auto;
+      background: rgba(255,255,255,.98);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(15,23,42,.22);
+      animation: slideUp .18s ease;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      z-index: 140;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: rgba(15,23,42,.94);
+      color: #fff;
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 14px 40px rgba(2,6,23,.28);
+      animation: slideDown .18s ease;
+    }
+
+    .toast.success { background: rgba(22,163,74,.96); }
+    .toast.error { background: rgba(220,38,38,.96); }
+    .toast.warning { background: rgba(245,158,11,.98); color:#111827; }
+
+    .login-shell {
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+    }
+
+    .rights-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 18px;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      color: #1e3a8a;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.9;
+      font-weight: 800;
+    }
+
+    .fab-main {
+      position: fixed;
+      left: 18px;
+      bottom: 86px;
+      z-index: 40;
+      width: 60px;
+      height: 60px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--fab-gradient-1), var(--fab-gradient-2));
+      color: #fff;
+      box-shadow: 0 18px 40px color-mix(in srgb, var(--primary) 35%, transparent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:0;
+    }
+
+    .table-modern {
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    .table-modern th, .table-modern td {
+      padding:10px;
+      border-bottom:1px solid #eef2f7;
+      text-align:right;
+      vertical-align:top;
+    }
+    .table-modern th {
+      background:#f8fafc;
+      color:#334155;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .invoice-paper {
+      width: 1000px;
+      max-width:100%;
+      background: #fff;
+      color: #0f172a;
+      font-family: 'Cairo', sans-serif;
+      padding: 28px;
+    }
+
+    .invoice-paper.mobile-preview{
+      width:100%;
+      padding:14px;
+    }
+
+    .invoice-header {
+      border: 1px solid #dbeafe;
+      background: linear-gradient(135deg, #eff6ff, #ffffff 60%);
+      border-radius: 28px;
+      padding: 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom: 18px;
+      flex-wrap:wrap;
+    }
+
+    .invoice-brand {
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      min-width:0;
+      flex:1;
+    }
+
+    .invoice-logo {
+      width: 90px;
+      height: 90px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid #dbeafe;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow: 0 8px 24px rgba(37,99,235,.12);
+      flex-shrink:0;
+    }
+
+    .invoice-title {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.3;
+      color: #0f172a;
+    }
+
+    .invoice-subtitle {
+      font-size: 14px;
+      color: #475569;
+      margin-top: 6px;
+      line-height: 1.9;
+      font-weight: 700;
+    }
+
+    .invoice-meta {
+      min-width: 300px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 18px rgba(15,23,42,.05);
+    }
+
+    .invoice-meta-row {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:6px 0;
+      border-bottom:1px dashed #e2e8f0;
+      font-size:13px;
+    }
+
+    .invoice-meta-row:last-child { border-bottom:none; }
+
+    .invoice-head-strip{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 18px;
+      border-radius:22px;
+      background:linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, #fff), #fff);
+      border:1px solid color-mix(in srgb, var(--primary) 15%, #dbeafe);
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+
+    .online-dot, .offline-dot {
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      display:inline-block;
+    }
+    .online-dot { background:#16a34a; box-shadow: 0 0 0 6px rgba(22,163,74,.12); }
+    .offline-dot { background:#dc2626; box-shadow: 0 0 0 6px rgba(220,38,38,.12); }
+
+    .preview-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .preview-shell{
+      background:#f8fafc;
+      min-height:100vh;
+      padding:16px;
+    }
+
+    .preview-container{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    .login-toggle-btn{
+      flex:1;
+      min-height:48px;
+      border-radius:16px;
+      font-weight:900;
+      border:1px solid #dbeafe;
+      background:#fff;
+      color:#334155;
+    }
+
+    .login-toggle-btn.active{
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      color:#fff;
+      border-color:transparent;
+      box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 25%, transparent);
+    }
+
+    .mini-link-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#16a34a;
+      text-decoration:none;
+      font-weight:900;
+      font-size:14px;
+    }
+
+    .color-swatch{
+      width:38px;
+      height:38px;
+      border-radius:14px;
+      border:2px solid #fff;
+      box-shadow:0 0 0 1px #cbd5e1;
+      cursor:pointer;
+    }
+
+    ::-webkit-scrollbar { width:7px; height:7px; }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:999px; }
+
+    @keyframes fadeIn {
+      from { opacity:0; } to { opacity:1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(12px) scale(.985); opacity:0; }
+      to { transform: translateY(0) scale(1); opacity:1; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-8px); opacity:0; }
+      to { transform: translateY(0); opacity:1; }
+    }
+    @keyframes spin {
+      from { transform:rotate(0deg); }
+      to { transform:rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .invoice-header { padding:16px; border-radius:22px; }
+      .invoice-logo { width:72px; height:72px; }
+      .invoice-title { font-size:22px; }
+      .invoice-meta { min-width:100%; }
+      .invoice-paper { width:100%; padding:14px; }
+    }
+
+    @media print {
+      body { background:#fff !important; }
+      .no-print { display:none !important; }
+    }
+  </style>
+</head>
+<body class="pb-24">
+
+  <div id="loginRoot" class="login-shell">
+    <div class="fancy-card w-full max-w-md rounded-[30px] p-6">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl font-extrabold shadow-lg">
+          <i class="fas fa-layer-group"></i>
+        </div>
+        <h2 class="text-2xl font-extrabold text-slate-800 mt-4">تسجيل الدخول</h2>
+        <p class="text-sm text-slate-500 mt-2">أول دخول يحتاج اتصال إنترنت، وبعدها يعمل التطبيق حسب نوع المفتاح</p>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <button id="loginModeLicenseBtn" class="login-toggle-btn active" onclick="setLoginMode('license')">دخول بالمفتاح</button>
+        <button id="loginModeEmployeeBtn" class="login-toggle-btn" onclick="setLoginMode('employee')">دخول موظف</button>
+      </div>
+
+      <div id="licenseLoginBox" class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">مفتاح الدخول</label>
+          <input id="licenseKeyInput" type="text" class="input" placeholder="أدخل مفتاح الاشتراك...">
+        </div>
+
+        <div id="loginStatusBox" class="hidden text-sm rounded-xl p-3"></div>
+
+        <button id="loginBtn" class="w-full btn btn-primary py-4 rounded-2xl font-extrabold shadow-lg">
+          دخول
+        </button>
+
+        <div class="rights-box">
+          هذا النظام يدعم أكثر من شركة<br>
+          وكل شركة تعمل بمفتاح مستقل
+        </div>
+
+        <div class="text-xs text-center text-slate-400">
+          اسم الشركة وصورتها يظهران من بيانات المفتاح أو من الإعدادات
+        </div>
+
+        <div class="text-center pt-2">
+          <a class="mini-link-btn" href="https://wa.me/972597603119" target="_blank">
+            <i class="fab fa-whatsapp text-lg"></i>
+            <span>لشراء المفتاح 0597603119</span>
+          </a>
+        </div>
+      </div>
+
+      <div id="employeeLoginBox" class="space-y-4 hidden-force">
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">مفتاح الشركة</label>
+          <input id="employee-license-key" type="text" class="input" placeholder="أدخل مفتاح الشركة">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">اسم المستخدم</label>
+          <input id="employee-username" type="text" class="input" placeholder="اسم المستخدم">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+          <input id="employee-password" type="password" class="input" placeholder="كلمة المرور">
+        </div>
+
+        <div id="employeeLoginStatusBox" class="hidden text-sm rounded-xl p-3"></div>
+
+        <button id="employeeLoginBtn" class="w-full btn btn-primary py-4 rounded-2xl font-extrabold shadow-lg">
+          دخول الموظف
+        </button>
+
+        <div class="text-center pt-2">
+          <a class="mini-link-btn" href="https://wa.me/972597603119" target="_blank">
+            <i class="fab fa-whatsapp text-lg"></i>
+            <span>لشراء المفتاح 0597603119</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="expiredRoot" class="login-shell hidden-force">
+    <div class="fancy-card w-full max-w-md rounded-[28px] p-6 text-center">
+      <div class="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
+        <span class="text-3xl text-red-600">!</span>
+      </div>
+      <h2 id="expiredTitle" class="text-2xl font-extrabold text-red-700 mb-3">انتهى الاشتراك</h2>
+      <p id="expiredText" class="text-sm text-slate-600 leading-8 mb-5">يرجى إدخال مفتاح صالح للمتابعة.</p>
+      <button id="goToLoginBtn" class="w-full btn btn-primary py-4 rounded-2xl font-extrabold shadow-lg">
+        العودة لتسجيل الدخول
+      </button>
+    </div>
+  </div>
+
+  <div id="appRoot" class="hidden-force">
+    <div id="toast-root" class="toast-wrap no-print"></div>
+    <div id="modal-root"></div>
+
+    <header class="glass-header sticky top-0 z-50 text-slate-800 p-4 flex justify-between items-center no-print">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 bg-white rounded-2xl overflow-hidden flex items-center justify-center shadow-lg shrink-0 border border-blue-100">
+          <i class="fas fa-store text-blue-800" id="default-icon"></i>
+          <img id="header-logo" class="hidden w-full h-full object-cover">
+        </div>
+
+        <div class="min-w-0">
+          <h1 id="header-shop-name" class="font-extrabold text-lg leading-tight truncate">اسم الشركة</h1>
+          <div class="flex items-center gap-2 mt-1">
+            <span id="connectionDot" class="online-dot"></span>
+            <span id="connectionText" class="text-xs text-slate-500">متصل</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openSyncCenter()" class="p-2 hover:bg-blue-100 rounded-full transition-colors relative">
+          <i class="fas fa-rotate text-xl"></i>
+          <span id="pending-sync-badge" class="hidden absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center">0</span>
+        </button>
+
+        <button onclick="openAlertsModal()" class="p-2 hover:bg-blue-100 rounded-full transition-colors relative">
+          <i class="fas fa-bell text-xl"></i>
+          <span id="alerts-badge" class="hidden absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">0</span>
+        </button>
+
+        <button onclick="navigate('settings')" class="p-2 hover:bg-blue-100 rounded-full transition-colors">
+          <i class="fas fa-cog text-xl"></i>
+        </button>
+      </div>
+    </header>
+
+    <div id="sync-status-bar" class="status-bar no-print">
+      <div class="flex-1">
+        <div id="sync-status-text">تمت المزامنة بنجاح</div>
+        <div id="sync-progress-wrap" class="sync-progress-wrap">
+          <div class="sync-circle"></div>
+          <div class="sync-progress-bar">
+            <div id="sync-progress-fill" class="sync-progress-fill"></div>
+          </div>
+          <div id="sync-progress-text" class="sync-progress-text">0%</div>
+        </div>
+      </div>
+      <button onclick="manualSync()" class="text-xs font-extrabold underline">مزامنة الآن</button>
+    </div>
+
+    <main id="app-container" class="p-4 max-w-5xl mx-auto"></main>
+
+    <button class="fab-main no-print btn" onclick="openQuickActions()">
+      <i class="fas fa-plus text-xl"></i>
+    </button>
+
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 flex justify-around p-2 no-print">
+      <button onclick="navigate('home')" class="flex flex-col items-center p-2 text-blue-600 nav-btn" id="nav-home">
+        <i class="fas fa-home text-xl"></i>
+        <span class="text-[10px] mt-1">الرئيسية</span>
+      </button>
+
+      <button onclick="navigate('customers')" class="flex flex-col items-center p-2 text-gray-500 nav-btn" id="nav-customers">
+        <i class="fas fa-users text-xl"></i>
+        <span class="text-[10px] mt-1">العملاء</span>
+      </button>
+
+      <button onclick="navigate('invoices')" class="flex flex-col items-center p-2 text-gray-500 nav-btn" id="nav-invoices">
+        <i class="fas fa-file-invoice text-xl"></i>
+        <span class="text-[10px] mt-1">الفواتير</span>
+      </button>
+
+      <button onclick="navigate('reports')" class="flex flex-col items-center p-2 text-gray-500 nav-btn" id="nav-reports">
+        <i class="fas fa-chart-pie text-xl"></i>
+        <span class="text-[10px] mt-1">التقارير</span>
+      </button>
+
+      <button onclick="navigate('settings')" class="flex flex-col items-center p-2 text-gray-500 nav-btn" id="nav-settings">
+        <i class="fas fa-user-shield text-xl"></i>
+        <span class="text-[10px] mt-1">الإعدادات</span>
+      </button>
+    </nav>
+
+    <div id="capture-root" class="fixed -left-[99999px] top-0 w-[1200px] bg-white"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      update,
+      set,
+      remove,
+      onValue,
+      off
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    window.feeFirebase = {
+      initializeApp,
+      getDatabase,
+      ref,
+      get,
+      update,
+      set,
+      remove,
+      onValue,
+      off
+    };
+  </script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnLAY7zQyBy7gUuL9wszt9aEhiJgvRmxI",
+      authDomain: "shop-d52dc.firebaseapp.com",
+      databaseURL: "https://shop-d52dc-default-rtdb.firebaseio.com",
+      projectId: "shop-d52dc",
+      storageBucket: "shop-d52dc.appspot.com",
+      messagingSenderId: "97580537866",
+      appId: "1:97580537866:web:abc46e5a2f527b6300a7f3",
+      measurementId: "G-956RQMBP42"
+    };
+
+    const LICENSE_CACHE_KEY = "fee_cached_license_state_v6";
+    const INSTALLATION_ID_KEY = "fee_installation_id_v6";
+    const LICENSE_PATH = "fee_licenses";
+    const LAST_ROUTE_KEY = "fee_last_route_v6";
+    const LOGIN_MODE_KEY = "fee_login_mode_v6";
+
+    function scopedStorageKey(baseKey, licenseKey = "") {
+      const key = String(licenseKey || getCurrentLicense()?.key || "no_license").trim() || "no_license";
+      return `${baseKey}__${key}`;
+    }
+
+    const STORAGE_KEYS = {
+      appBase: "fee_app_state_v6",
+      queueBase: "fee_sync_queue_v6"
+    };
+
+    let firebaseAppRef = null;
+    let firebaseDbRef = null;
+    let licenseCountdownInterval = null;
+    let syncPulseTimeout = null;
+    let cloudRealtimeUnsubscribe = null;
+    let currentLoginMode = localStorage.getItem(LOGIN_MODE_KEY) || "license";
+
+    const DEFAULT_THEME = {
+      primaryColor: "#1d4ed8"
+    };
+
+    const DEFAULT_SETTINGS = {
+      companyName: "اسم الشركة",
+      companySecondaryName: "",
+      shopName: "اسم الشركة",
+      logo: null,
+      logoSourceType: "none",
+      currency: "شيكل",
+      invoicePrefix: "INV",
+      taxNumber: "",
+      shopPhone: "",
+      shopAddress: "",
+      footerNote: "شكرًا لتعاملكم معنا",
+      defaultCreditLimit: 500,
+      overdueDaysThreshold: 14,
+      enableOverdueAlerts: true,
+      enableCreditLimitAlerts: true,
+      printEmployeeName: true,
+      primaryColor: "#1d4ed8"
+    };
+
+    const DEFAULT_USER_PERMISSIONS = {
+      canViewFinancials: true,
+      canAddInvoice: true,
+      canEditInvoice: true,
+      canDeleteInvoice: true,
+      canAddPayment: true,
+      canAddManualDebt: true,
+      canManageCustomers: true,
+      canViewReports: true,
+      canManageUsers: true,
+      canExport: true,
+      canManagePurchases: true
+    };
+
+    const EMPLOYEE_DEFAULT_PERMISSIONS = {
+      canViewFinancials: false,
+      canAddInvoice: true,
+      canEditInvoice: false,
+      canDeleteInvoice: false,
+      canAddPayment: false,
+      canAddManualDebt: false,
+      canManageCustomers: false,
+      canViewReports: false,
+      canManageUsers: false,
+      canExport: true,
+      canManagePurchases: false
+    };
+
+    function getAppStorageKey() {
+      return scopedStorageKey(STORAGE_KEYS.appBase);
+    }
+
+    function getQueueStorageKey() {
+      return scopedStorageKey(STORAGE_KEYS.queueBase);
+    }
+
+    function loadAppData() {
+      const saved = JSON.parse(localStorage.getItem(getAppStorageKey()) || "null");
+      return {
+        settings: { ...DEFAULT_SETTINGS, ...(saved?.settings || {}) },
+        customers: saved?.customers || [],
+        invoices: saved?.invoices || [],
+        users: saved?.users || [
+          {
+            id: "owner",
+            name: "المدير",
+            username: "admin",
+            password: "admin",
+            role: "admin",
+            isActive: true,
+            permissions: { ...DEFAULT_USER_PERMISSIONS },
+            createdAt: new Date().toISOString()
+          }
+        ],
+        shortages: saved?.shortages || [],
+        purchases: saved?.purchases || [],
+        meta: {
+          updatedAt: saved?.meta?.updatedAt || new Date().toISOString(),
+          version: 6
+        }
+      };
+    }
+
+    let state = {
+      currentScreen: "home",
+      screenStack: ["home"],
+      selectedCustomerId: null,
+      selectedInvoiceId: null,
+      syncStatus: "synced",
+      syncProgress: 0,
+      queue: [],
+      session: {
+        userId: "owner",
+        displayName: "المدير",
+        role: "admin",
+        permissions: { ...DEFAULT_USER_PERMISSIONS }
+      },
+      data: {
+        settings: { ...DEFAULT_SETTINGS },
+        customers: [],
+        invoices: [],
+        users: [],
+        shortages: [],
+        purchases: [],
+        meta: { updatedAt: new Date().toISOString(), version: 6 }
+      }
+    };
+
+    function resetStateForLicense() {
+      state.data = loadAppData();
+      state.queue = JSON.parse(localStorage.getItem(getQueueStorageKey()) || "[]");
+      state.currentScreen = getSavedRoute() || "home";
+      state.screenStack = [state.currentScreen];
+      state.selectedCustomerId = null;
+      state.selectedInvoiceId = null;
+      state.syncStatus = "synced";
+      state.syncProgress = 0;
+      state.session = {
+        userId: "owner",
+        displayName: "المدير",
+        role: "admin",
+        permissions: { ...DEFAULT_USER_PERMISSIONS }
+      };
+      applyThemeFromSettings();
+    }
+
+    function saveAppState() {
+      state.data.meta.updatedAt = new Date().toISOString();
+      localStorage.setItem(getAppStorageKey(), JSON.stringify(state.data));
+      localStorage.setItem(getQueueStorageKey(), JSON.stringify(state.queue));
+      saveCurrentRoute();
+      updatePendingSyncBadge();
+    }
+
+    function uid(prefix = "id") {
+      return prefix + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function parseNumber(v) {
+      const x = parseFloat(v);
+      return isNaN(x) ? 0 : x;
+    }
+
+    function todayISO() {
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0, 16);
+    }
+
+    function formatCurrency(val) {
+      const num = Number(val || 0);
+      return `${num.toLocaleString('en-US')} ${state.data.settings.currency}`;
+    }
+
+    function formatDate(dateStr, withTime = true) {
+      const d = new Date(dateStr);
+      return d.toLocaleString("ar-EG", withTime ? {
+        year:"numeric", month:"2-digit", day:"2-digit",
+        hour:"2-digit", minute:"2-digit"
+      } : {
+        year:"numeric", month:"2-digit", day:"2-digit"
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function generateRandomId() {
+      return "id_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    function getInstallationId() {
+      let id = localStorage.getItem(INSTALLATION_ID_KEY);
+      if (!id) {
+        id = generateRandomId();
+        localStorage.setItem(INSTALLATION_ID_KEY, id);
+      }
+      return id;
+    }
+
+    function getCachedLicenseState() {
+      const raw = localStorage.getItem(LICENSE_CACHE_KEY);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function saveCachedLicenseState(data) {
+      localStorage.setItem(LICENSE_CACHE_KEY, JSON.stringify(data));
+    }
+
+    function clearCachedLicenseState() {
+      localStorage.removeItem(LICENSE_CACHE_KEY);
+    }
+
+    function nowMs() {
+      return Date.now();
+    }
+
+    function isLicenseExpired(stateObj) {
+      if (!stateObj) return true;
+      if (stateObj.isPermanent) return false;
+      if (!stateObj.expiresAt) return true;
+      return nowMs() >= Number(stateObj.expiresAt);
+    }
+
+    function getSavedRoute() {
+      const license = getCurrentLicense();
+      if (!license?.key) return localStorage.getItem(LAST_ROUTE_KEY) || "home";
+      return localStorage.getItem(scopedStorageKey(LAST_ROUTE_KEY, license.key)) || "home";
+    }
+
+    function saveCurrentRoute() {
+      const license = getCurrentLicense();
+      if (!license?.key) {
+        localStorage.setItem(LAST_ROUTE_KEY, state.currentScreen || "home");
+        return;
+      }
+      localStorage.setItem(scopedStorageKey(LAST_ROUTE_KEY, license.key), state.currentScreen || "home");
+    }
+
+    function hexToRgb(hex) {
+      const safe = String(hex || "").replace("#","").trim();
+      if (safe.length !== 6) return { r:29, g:78, b:216 };
+      return {
+        r: parseInt(safe.slice(0,2), 16),
+        g: parseInt(safe.slice(2,4), 16),
+        b: parseInt(safe.slice(4,6), 16)
+      };
+    }
+
+    function shadeColor(hex, percent) {
+      const { r, g, b } = hexToRgb(hex);
+      const p = percent / 100;
+      const t = p < 0 ? 0 : 255;
+      const R = Math.round((t - r) * Math.abs(p) + r);
+      const G = Math.round((t - g) * Math.abs(p) + g);
+      const B = Math.round((t - b) * Math.abs(p) + b);
+      return "#" + [R,G,B].map(v => v.toString(16).padStart(2, "0")).join("");
+    }
+
+    function hexToRgba(hex, alpha) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function applyThemeFromSettings() {
+      const color = state.data?.settings?.primaryColor || DEFAULT_THEME.primaryColor;
+      const root = document.documentElement;
+      root.style.setProperty("--primary", color);
+      root.style.setProperty("--primary-2", shadeColor(color, -8));
+      root.style.setProperty("--primary-3", shadeColor(color, 16));
+      root.style.setProperty("--primary-soft", hexToRgba(color, .12));
+      root.style.setProperty("--header-bg", hexToRgba(color, .10));
+      root.style.setProperty("--header-border", hexToRgba(color, .22));
+      root.style.setProperty("--fab-gradient-1", shadeColor(color, 8));
+      root.style.setProperty("--fab-gradient-2", shadeColor(color, -10));
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute("content", color);
+    }
+
+    function canViewFinancials() {
+      return !!state.session.permissions?.canViewFinancials;
+    }
+
+    function moneyText(value) {
+      return canViewFinancials() ? formatCurrency(value) : "••••";
+    }
+
+    function setShell(target) {
+      document.getElementById("loginRoot").classList.add("hidden-force");
+      document.getElementById("expiredRoot").classList.add("hidden-force");
+      document.getElementById("appRoot").classList.add("hidden-force");
+
+      if (target === "login") document.getElementById("loginRoot").classList.remove("hidden-force");
+      if (target === "expired") document.getElementById("expiredRoot").classList.remove("hidden-force");
+      if (target === "app") document.getElementById("appRoot").classList.remove("hidden-force");
+    }
+
+    function setLoginMode(mode) {
+      currentLoginMode = mode === "employee" ? "employee" : "license";
+      localStorage.setItem(LOGIN_MODE_KEY, currentLoginMode);
+
+      document.getElementById("licenseLoginBox").classList.toggle("hidden-force", currentLoginMode !== "license");
+      document.getElementById("employeeLoginBox").classList.toggle("hidden-force", currentLoginMode !== "employee");
+      document.getElementById("loginModeLicenseBtn").classList.toggle("active", currentLoginMode === "license");
+      document.getElementById("loginModeEmployeeBtn").classList.toggle("active", currentLoginMode === "employee");
+    }
+
+    function showLoginStatus(message, type = "info", employee = false) {
+      const box = document.getElementById(employee ? "employeeLoginStatusBox" : "loginStatusBox");
+      box.classList.remove("hidden");
+      box.textContent = message;
+      box.className = "text-sm rounded-xl p-3";
+      if (type === "error") box.classList.add("bg-red-50", "text-red-700", "border", "border-red-200");
+      else if (type === "success") box.classList.add("bg-green-50", "text-green-700", "border", "border-green-200");
+      else box.classList.add("bg-blue-50", "text-blue-700", "border", "border-blue-200");
+    }
+
+    function clearLoginStatus(employee = false) {
+      const box = document.getElementById(employee ? "employeeLoginStatusBox" : "loginStatusBox");
+      box.classList.add("hidden");
+      box.textContent = "";
+    }
+    
+function stopLicenseCountdown() {
+      if (licenseCountdownInterval) {
+        clearInterval(licenseCountdownInterval);
+        licenseCountdownInterval = null;
+      }
+    }
+
+    function startLicenseCountdown() {
+      stopLicenseCountdown();
+      const tick = () => {
+        const stateObj = getCachedLicenseState();
+        if (!stateObj) return;
+        stateObj.isExpired = isLicenseExpired(stateObj);
+        saveCachedLicenseState(stateObj);
+        if (stateObj.isExpired) showExpiredScreen(stateObj);
+      };
+      tick();
+      licenseCountdownInterval = setInterval(tick, 1000);
+    }
+
+    function showExpiredScreen(stateObj) {
+      stopLicenseCountdown();
+      detachRealtimeSync();
+      const isTrial = stateObj?.planType === "trial";
+      document.getElementById("expiredTitle").textContent = isTrial ? "انتهت الفترة التجريبية" : "انتهى الاشتراك";
+      document.getElementById("expiredText").textContent = isTrial
+        ? "انتهت الفترة التجريبية لهذا التطبيق. يرجى إدخال مفتاح جديد."
+        : "انتهت صلاحية المفتاح. يرجى إدخال مفتاح صالح.";
+      setShell("expired");
+    }
+
+    async function ensureFirebaseReady() {
+      if (firebaseDbRef) return;
+      const fb = window.feeFirebase;
+      if (!fb) throw new Error("Firebase not ready");
+      try {
+        firebaseAppRef = fb.initializeApp(firebaseConfig, "fee-app-v6");
+      } catch (e) {
+        firebaseAppRef = fb.initializeApp(firebaseConfig);
+      }
+      firebaseDbRef = fb.getDatabase(firebaseAppRef);
+    }
+
+    function getCurrentLicense() {
+      return getCachedLicenseState() || {};
+    }
+
+    function getCloudRootPath() {
+      const license = getCurrentLicense();
+      const key = license.key || "default";
+      return `fee_cloud_data/${key}`;
+    }
+
+    function getSyncMode() {
+      const license = getCurrentLicense();
+      return license.syncMode || "online_sync";
+    }
+
+    function isCloudSyncEnabled() {
+      return getSyncMode() === "online_sync";
+    }
+
+    function isLocalOnlyMode() {
+      return getSyncMode() === "offline_local_only";
+    }
+
+    function hasPermission(permissionKey) {
+      return !!state.session.permissions?.[permissionKey];
+    }
+
+    function calculateInvoiceTotals(invoice) {
+      const subtotal = Number(invoice?.subtotal || 0);
+      const discount = Number(invoice?.discount || 0);
+      const total = Math.max(0, subtotal - discount);
+      const paid = Number(invoice?.paidAmount || 0);
+      const remaining = Math.max(0, total - paid);
+      return { subtotal, discount, total, paid, remaining };
+    }
+
+    function calculateCustomerBalance(customer) {
+      return Number(customer?.balance || 0);
+    }
+
+    function rebuildCustomerBalances() {
+      const invoiceMap = {};
+      (state.data.customers || []).forEach(c => { invoiceMap[c.id] = 0; });
+
+      (state.data.invoices || []).forEach(invoice => {
+        const { remaining } = calculateInvoiceTotals(invoice);
+        if (invoice.customerId) {
+          invoiceMap[invoice.customerId] = (invoiceMap[invoice.customerId] || 0) + remaining;
+        }
+      });
+
+      (state.data.customers || []).forEach(customer => {
+        const manualDebts = (customer.manualDebts || []).reduce((a,b)=> a + Number(b.amount || 0), 0);
+        const payments = (customer.payments || []).reduce((a,b)=> a + Number(b.amount || 0), 0);
+        customer.balance = Math.max(0, (invoiceMap[customer.id] || 0) + manualDebts - payments);
+      });
+    }
+
+    function getCustomerById(id) {
+      return (state.data.customers || []).find(c => c.id === id);
+    }
+
+    function getInvoiceById(id) {
+      return (state.data.invoices || []).find(i => i.id === id);
+    }
+
+    function getPurchaseById(id) {
+      return (state.data.purchases || []).find(i => i.id === id);
+    }
+
+    function getCreditLimit(customer) {
+      return Number(customer?.creditLimit ?? state.data.settings.defaultCreditLimit ?? 0);
+    }
+
+    function getLastPaymentDate(customer) {
+      const payments = (customer?.payments || []).slice().sort((a,b)=> new Date(b.date) - new Date(a.date));
+      return payments[0]?.date || null;
+    }
+
+    function getDaysSince(dateStr) {
+      if (!dateStr) return null;
+      const diff = Date.now() - new Date(dateStr).getTime();
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function getOverdueStatus(customer) {
+      const balance = calculateCustomerBalance(customer);
+      if (balance <= 0) return { overdue:false, days:0 };
+
+      const lastPayment = getLastPaymentDate(customer);
+      const oldestInvoice = (state.data.invoices || [])
+        .filter(i => i.customerId === customer.id)
+        .sort((a,b)=> new Date(a.date)-new Date(b.date))[0];
+
+      const oldestManualDebt = (customer.manualDebts || [])
+        .slice()
+        .sort((a,b)=> new Date(a.date)-new Date(b.date))[0];
+
+      const refDate = lastPayment || oldestInvoice?.date || oldestManualDebt?.date;
+      if (!refDate) return { overdue:false, days:0 };
+
+      const days = getDaysSince(refDate);
+      const overdue = days >= Number(state.data.settings.overdueDaysThreshold || 14);
+      return { overdue, days };
+    }
+
+    function getAllAlerts() {
+      const alerts = [];
+      (state.data.customers || []).forEach(customer => {
+        const balance = calculateCustomerBalance(customer);
+        const creditLimit = getCreditLimit(customer);
+
+        if (state.data.settings.enableCreditLimitAlerts && balance > creditLimit && creditLimit > 0) {
+          alerts.push({
+            type: "credit",
+            severity: "warning",
+            customerId: customer.id,
+            title: "تجاوز الحد الائتماني",
+            text: `${customer.name} تجاوز الحد الائتماني`
+          });
+        }
+
+        const overdueInfo = getOverdueStatus(customer);
+        if (state.data.settings.enableOverdueAlerts && overdueInfo.overdue) {
+          alerts.push({
+            type: "overdue",
+            severity: "error",
+            customerId: customer.id,
+            title: "تأخر في السداد",
+            text: `${customer.name} متأخر عن السداد منذ ${overdueInfo.days} يومًا`
+          });
+        }
+      });
+      return alerts;
+    }
+
+    function enqueueSyncOperation(op) {
+      if (isLocalOnlyMode()) return;
+      state.queue.push({
+        id: uid("sync"),
+        createdAt: new Date().toISOString(),
+        ...op
+      });
+      saveAppState();
+      updateSyncStatusBar("offline");
+    }
+
+    function updateConnectionUI() {
+      const dot = document.getElementById("connectionDot");
+      const txt = document.getElementById("connectionText");
+      if (!dot || !txt) return;
+
+      if (isLocalOnlyMode()) {
+        dot.className = "online-dot";
+        txt.textContent = "أوفلاين محلي";
+        return;
+      }
+
+      if (navigator.onLine) {
+        dot.className = "online-dot";
+        txt.textContent = isCloudSyncEnabled() ? "متصل" : "أوفلاين محلي";
+      } else {
+        dot.className = "offline-dot";
+        txt.textContent = "غير متصل";
+      }
+    }
+
+    function updatePendingSyncBadge() {
+      const badge = document.getElementById("pending-sync-badge");
+      if (!badge) return;
+      badge.textContent = state.queue.length;
+      badge.classList.toggle("hidden", state.queue.length === 0);
+    }
+
+    function setSyncProgress(percent = 0) {
+      state.syncProgress = Math.max(0, Math.min(100, Math.round(percent)));
+      const wrap = document.getElementById("sync-progress-wrap");
+      const fill = document.getElementById("sync-progress-fill");
+      const text = document.getElementById("sync-progress-text");
+      if (!wrap || !fill || !text) return;
+
+      if (state.syncStatus === "syncing") wrap.classList.add("show");
+      else wrap.classList.remove("show");
+
+      fill.style.width = `${state.syncProgress}%`;
+      text.textContent = `${state.syncProgress}%`;
+    }
+
+    function updateSyncStatusBar(force = "") {
+      const bar = document.getElementById("sync-status-bar");
+      const text = document.getElementById("sync-status-text");
+      if (!bar || !text) return;
+
+      bar.className = "status-bar no-print";
+      let status = force || state.syncStatus;
+
+      if (isLocalOnlyMode()) {
+        bar.classList.add("show", "synced");
+        text.textContent = "هذه نسخة أوفلاين محلية — لا تستخدم المزامنة السحابية";
+        setSyncProgress(0);
+        return;
+      }
+
+      if (!navigator.onLine) status = "offline";
+      else if (state.queue.length > 0 && status !== "syncing") status = "syncing";
+
+      if (status === "offline") {
+        state.syncStatus = "offline";
+        bar.classList.add("show", "offline");
+        text.textContent = "أنت غير متصل — العمليات تُحفظ محليًا";
+        setSyncProgress(0);
+      } else if (status === "syncing") {
+        state.syncStatus = "syncing";
+        bar.classList.add("show", "syncing");
+        text.textContent = state.queue.length > 0
+          ? `جارٍ مزامنة ${state.queue.length} عملية`
+          : "جارٍ المزامنة";
+      } else if (status === "synced") {
+        state.syncStatus = "synced";
+        bar.classList.add("show", "synced");
+        text.textContent = "تمت المزامنة بنجاح — كل شيء محفوظ";
+        setSyncProgress(100);
+        clearTimeout(syncPulseTimeout);
+        syncPulseTimeout = setTimeout(() => {
+          bar.classList.remove("show");
+          setSyncProgress(0);
+        }, 2400);
+      }
+    }
+
+    async function validateLicenseOnline(key, countLogin = true) {
+      const trimmed = String(key || "").trim();
+      if (!trimmed) return { ok: false, message: "يرجى إدخال المفتاح" };
+      if (!navigator.onLine) return { ok: false, message: "يلزم توفر الإنترنت لأول مرة للتحقق من المفتاح" };
+
+      await ensureFirebaseReady();
+      const installationId = getInstallationId();
+      const { ref, get, update } = window.feeFirebase;
+
+      try {
+        const licenseRef = ref(firebaseDbRef, `${LICENSE_PATH}/${trimmed}`);
+        const snapshot = await get(licenseRef);
+
+        if (!snapshot.exists()) return { ok: false, message: "المفتاح غير صالح لهذا التطبيق" };
+
+        const remoteLicense = snapshot.val() || {};
+        if (remoteLicense.status !== "active") return { ok: false, message: "هذا المفتاح معطل" };
+
+        const isPermanent = !!remoteLicense.isPermanent;
+        const expiresAt = isPermanent ? null : Number(remoteLicense.expiresAt || 0);
+        const allowUnlimitedDevices = !!remoteLicense.allowUnlimitedDevices;
+        const maxDevices = allowUnlimitedDevices ? null : Number(remoteLicense.maxDevices || 1);
+        const syncMode = remoteLicense.syncMode || "online_sync";
+        const companyName = remoteLicense.companyName || DEFAULT_SETTINGS.companyName;
+        const logo = remoteLicense.logo || null;
+
+        if (!isPermanent && (!expiresAt || Date.now() >= expiresAt)) {
+          return { ok: false, message: "المفتاح منتهي" };
+        }
+
+        const loginCount = Number(remoteLicense.loginCount || 0);
+
+        if (countLogin && !allowUnlimitedDevices && loginCount >= maxDevices) {
+          return { ok: false, message: "تم استهلاك عدد الأجهزة المسموح لهذا المفتاح" };
+        }
+
+        if (countLogin) {
+          const updatePayload = {
+            lastLoginAt: Date.now(),
+            lastInstallationId: installationId
+          };
+          if (!allowUnlimitedDevices) updatePayload.loginCount = loginCount + 1;
+
+          await update(ref(firebaseDbRef, `${LICENSE_PATH}/${trimmed}`), updatePayload);
+        } else {
+          await update(ref(firebaseDbRef, `${LICENSE_PATH}/${trimmed}`), {
+            lastValidatedAt: Date.now()
+          });
+        }
+
+        const license = {
+          key: trimmed,
+          companyName,
+          logo,
+          planType: remoteLicense.planType || "regular",
+          isPermanent,
+          expiresAt,
+          issuedAt: remoteLicense.issuedAt || Date.now(),
+          cachedAt: Date.now(),
+          status: remoteLicense.status || "active",
+          installationId,
+          maxDevices,
+          allowUnlimitedDevices,
+          loginCount: countLogin ? (allowUnlimitedDevices ? loginCount : loginCount + 1) : loginCount,
+          lastValidatedAt: Date.now(),
+          syncMode,
+          usersEnabled: !!remoteLicense.usersEnabled
+        };
+
+        license.isExpired = isLicenseExpired(license);
+        if (license.isExpired) return { ok: false, license, message: "المفتاح منتهي" };
+
+        return { ok: true, license, message: "تم التحقق بنجاح" };
+      } catch (error) {
+        console.error("License validation error:", error);
+        return { ok: false, message: "تعذر الاتصال بقاعدة البيانات" };
+      }
+    }
+
+    async function refreshLicenseStateIfOnline() {
+      const stateObj = getCachedLicenseState();
+      if (!stateObj || !stateObj.key || !navigator.onLine || isLocalOnlyMode()) return;
+
+      const result = await validateLicenseOnline(stateObj.key, false);
+
+      if (!result.ok) {
+        if (result.message === "هذا المفتاح معطل" || result.message === "المفتاح منتهي") {
+          const expiredState = { ...stateObj, isExpired: true, cachedAt: Date.now() };
+          saveCachedLicenseState(expiredState);
+          showExpiredScreen(expiredState);
+        }
+        return;
+      }
+
+      saveCachedLicenseState(result.license);
+      startLicenseCountdown();
+    }
+
+    async function pushFullStateToCloud() {
+      if (!navigator.onLine || !isCloudSyncEnabled() || isLocalOnlyMode()) return false;
+
+      try {
+        await ensureFirebaseReady();
+        const { ref, set, update } = window.feeFirebase;
+        const rootPath = getCloudRootPath();
+
+        setSyncProgress(20);
+
+        await set(ref(firebaseDbRef, `${rootPath}/appState`), {
+          settings: state.data.settings,
+          customers: state.data.customers,
+          invoices: state.data.invoices,
+          users: state.data.users,
+          shortages: state.data.shortages,
+          purchases: state.data.purchases,
+          updatedAt: Date.now(),
+          updatedBy: state.session.userId || "system"
+        });
+
+        setSyncProgress(75);
+
+        await update(ref(firebaseDbRef, `${rootPath}/meta`), {
+          updatedAt: Date.now(),
+          updatedBy: state.session.userId || "system",
+          installationId: getInstallationId()
+        });
+
+        setSyncProgress(100);
+        return true;
+      } catch (error) {
+        console.error("pushFullStateToCloud failed", error);
+        setSyncProgress(0);
+        return false;
+      }
+    }
+
+    async function pullFullStateFromCloud(silent = false) {
+      if (!navigator.onLine || !isCloudSyncEnabled() || isLocalOnlyMode()) return false;
+
+      try {
+        await ensureFirebaseReady();
+        const { ref, get } = window.feeFirebase;
+        const rootPath = getCloudRootPath();
+
+        if (!silent) setSyncProgress(25);
+
+        const snap = await get(ref(firebaseDbRef, `${rootPath}/appState`));
+        if (!snap.exists()) return false;
+
+        const cloud = snap.val() || {};
+        if (!cloud.settings) return false;
+
+        state.data.settings = { ...DEFAULT_SETTINGS, ...(cloud.settings || {}) };
+        state.data.customers = cloud.customers || [];
+        state.data.invoices = cloud.invoices || [];
+        state.data.users = cloud.users || state.data.users;
+        state.data.shortages = cloud.shortages || [];
+        state.data.purchases = cloud.purchases || [];
+        applyThemeFromSettings();
+        saveAppState();
+
+        if (!silent) setSyncProgress(100);
+        return true;
+      } catch (error) {
+        console.error("pullFullStateFromCloud failed", error);
+        if (!silent) setSyncProgress(0);
+        return false;
+      }
+    }
+
+    function detachRealtimeSync() {
+      if (cloudRealtimeUnsubscribe) {
+        try { cloudRealtimeUnsubscribe(); } catch {}
+        cloudRealtimeUnsubscribe = null;
+      }
+    }
+
+    async function attachRealtimeSync() {
+      detachRealtimeSync();
+      if (!navigator.onLine || !isCloudSyncEnabled() || isLocalOnlyMode()) return;
+
+      try {
+        await ensureFirebaseReady();
+        const { ref, onValue, off } = window.feeFirebase;
+        const rootPath = getCloudRootPath();
+        const appStateRef = ref(firebaseDbRef, `${rootPath}/appState`);
+
+        const callback = snapshot => {
+          if (!snapshot.exists()) return;
+          const cloud = snapshot.val() || {};
+          if (!cloud.settings) return;
+
+          const localUpdated = new Date(state.data.meta?.updatedAt || 0).getTime();
+          const remoteUpdated = Number(cloud.updatedAt || 0);
+          if (remoteUpdated && remoteUpdated <= localUpdated) return;
+
+          state.data.settings = { ...DEFAULT_SETTINGS, ...(cloud.settings || {}) };
+          state.data.customers = cloud.customers || [];
+          state.data.invoices = cloud.invoices || [];
+          state.data.users = cloud.users || state.data.users;
+          state.data.shortages = cloud.shortages || [];
+          state.data.purchases = cloud.purchases || [];
+          applyThemeFromSettings();
+          saveAppState();
+          render();
+          showToast("تم تحديث البيانات تلقائيًا من مستخدم آخر", "success", 2500);
+        };
+
+        onValue(appStateRef, callback);
+        cloudRealtimeUnsubscribe = () => off(appStateRef, "value", callback);
+      } catch (error) {
+        console.error("attachRealtimeSync failed", error);
+      }
+    }
+
+    async function syncQueueToCloud() {
+      if (isLocalOnlyMode()) {
+        state.syncStatus = "synced";
+        updateSyncStatusBar("synced");
+        return true;
+      }
+
+      if (!navigator.onLine) {
+        updateSyncStatusBar("offline");
+        return false;
+      }
+
+      if (!isCloudSyncEnabled()) {
+        state.syncStatus = "synced";
+        updateSyncStatusBar("synced");
+        return true;
+      }
+
+      state.syncStatus = "syncing";
+      updateSyncStatusBar("syncing");
+      setSyncProgress(8);
+
+      const ok = await pushFullStateToCloud();
+      if (!ok) {
+        updateSyncStatusBar("offline");
+        return false;
+      }
+
+      state.queue = [];
+      localStorage.setItem(getQueueStorageKey(), JSON.stringify(state.queue));
+      updatePendingSyncBadge();
+      state.syncStatus = "synced";
+      updateSyncStatusBar("synced");
+      return true;
+    }
+
+    async function manualSync() {
+      if (isLocalOnlyMode()) {
+        showToast("هذه النسخة أوفلاين محلية ولا تستخدم السيرفر السحابي", "warning");
+        return;
+      }
+
+      if (!navigator.onLine) {
+        showToast("لا يوجد اتصال إنترنت حالياً", "warning");
+        updateSyncStatusBar("offline");
+        return;
+      }
+
+      state.syncStatus = "syncing";
+      updateSyncStatusBar("syncing");
+      setSyncProgress(12);
+
+      const pulled = await pullFullStateFromCloud();
+      if (!pulled && state.queue.length === 0 && isCloudSyncEnabled()) {
+        await pushFullStateToCloud();
+      } else {
+        await syncQueueToCloud();
+      }
+
+      await attachRealtimeSync();
+      render();
+      showToast("تمت المزامنة بنجاح", "success");
+    }
+
+    function bootstrapLicenseFlow() {
+      const stateObj = getCachedLicenseState();
+      if (!stateObj) {
+        setShell("login");
+        setLoginMode(currentLoginMode);
+        return;
+      }
+
+      stateObj.isExpired = isLicenseExpired(stateObj);
+      saveCachedLicenseState(stateObj);
+
+      if (stateObj.isExpired) {
+        showExpiredScreen(stateObj);
+        return;
+      }
+
+      resetStateForLicense();
+
+      if (stateObj.companyName) {
+        state.data.settings.companyName = stateObj.companyName;
+        state.data.settings.shopName = stateObj.companyName;
+      }
+      if (stateObj.logo && !state.data.settings.logo) {
+        state.data.settings.logo = stateObj.logo;
+      }
+
+      applyThemeFromSettings();
+      setShell("app");
+      startLicenseCountdown();
+      refreshLicenseStateIfOnline();
+      updateConnectionUI();
+      updateSyncStatusBar();
+      attachRealtimeSync();
+    }
+
+    async function handleLogin() {
+      const key = document.getElementById("licenseKeyInput").value.trim();
+      clearLoginStatus();
+
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true;
+      btn.textContent = "جارٍ التحقق...";
+
+      try {
+        const result = await validateLicenseOnline(key, true);
+
+        if (!result.ok) {
+          showLoginStatus(result.message || "تعذر التحقق من المفتاح", "error");
+          return;
+        }
+
+        saveCachedLicenseState(result.license);
+        resetStateForLicense();
+
+        if (result.license.companyName) {
+          state.data.settings.companyName = result.license.companyName;
+          state.data.settings.shopName = result.license.companyName;
+        }
+        if (result.license.logo) {
+          state.data.settings.logo = result.license.logo;
+        }
+
+        saveAppState();
+        applyThemeFromSettings();
+
+        showLoginStatus("تم تسجيل الدخول بنجاح", "success");
+        setShell("app");
+        startLicenseCountdown();
+        updateConnectionUI();
+        updateSyncStatusBar();
+        await pullFullStateFromCloud();
+        await attachRealtimeSync();
+        render();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "دخول";
+      }
+    }
+
+    async function handleEmployeeLogin() {
+      clearLoginStatus(true);
+      const key = document.getElementById("employee-license-key")?.value?.trim();
+      const username = document.getElementById("employee-username")?.value?.trim();
+      const password = document.getElementById("employee-password")?.value?.trim();
+      const btn = document.getElementById("employeeLoginBtn");
+
+      if (!key || !username || !password) {
+        showLoginStatus("يرجى تعبئة جميع البيانات", "error", true);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "جارٍ الدخول...";
+
+      try {
+        const result = await validateLicenseOnline(key, false);
+        if (!result.ok) {
+          showLoginStatus(result.message || "تعذر التحقق من المفتاح", "error", true);
+          return;
+        }
+
+        saveCachedLicenseState(result.license);
+        resetStateForLicense();
+
+        if (result.license.companyName) {
+          state.data.settings.companyName = result.license.companyName;
+          state.data.settings.shopName = result.license.companyName;
+        }
+        if (result.license.logo) {
+          state.data.settings.logo = result.license.logo;
+        }
+
+        await pullFullStateFromCloud(true);
+
+        const user = (state.data.users || []).find(u =>
+          u.username === username &&
+          u.password === password &&
+          u.isActive !== false
+        );
+
+        if (!user) {
+          showLoginStatus("بيانات الموظف غير صحيحة", "error", true);
+          return;
+        }
+
+        state.session = {
+          userId: user.id,
+          displayName: user.name || user.username,
+          role: user.role || "user",
+          permissions: {
+            ...(user.role === "admin" ? DEFAULT_USER_PERMISSIONS : EMPLOYEE_DEFAULT_PERMISSIONS),
+            ...(user.permissions || {})
+          }
+        };
+
+        saveAppState();
+        applyThemeFromSettings();
+        setShell("app");
+        startLicenseCountdown();
+        updateConnectionUI();
+        updateSyncStatusBar();
+        await attachRealtimeSync();
+        render();
+        showToast(`مرحبًا ${state.session.displayName}`, "success");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "دخول الموظف";
+      }
+    }
+
+    function logoutLicenseCompletely() {
+      confirmDialog({
+        title: "تسجيل خروج المفتاح",
+        message: "سيتم تسجيل خروج المفتاح الحالي، وسيبقى التخزين المحلي محفوظًا لهذا المفتاح لكنه لن يظهر حتى تعيد الدخول بنفس المفتاح. هل تريد المتابعة؟",
+        confirmText: "تسجيل الخروج",
+        cancelText: "إلغاء",
+        type: "danger",
+        onConfirm: () => {
+          stopLicenseCountdown();
+          detachRealtimeSync();
+          state.queue = [];
+          clearCachedLicenseState();
+          setShell("login");
+          setLoginMode("license");
+          showToast("تم تسجيل خروج المفتاح", "success");
+        }
+      });
+    }
+
+    function showToast(message, type = "default", duration = 2800) {
+      const root = document.getElementById("toast-root");
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+
+      const icon =
+        type === "success" ? "fa-circle-check" :
+        type === "error" ? "fa-circle-xmark" :
+        type === "warning" ? "fa-triangle-exclamation" :
+        "fa-bell";
+
+      el.innerHTML = `
+        <div class="mt-0.5"><i class="fas ${icon} text-lg"></i></div>
+        <div class="flex-1">
+          <div class="font-bold text-sm">${message}</div>
+        </div>
+        <button class="opacity-80 hover:opacity-100" onclick="this.parentElement.remove()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      `;
+      root.appendChild(el);
+
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(-6px)";
+        setTimeout(() => el.remove(), 180);
+      }, duration);
+    }
+
+    function openModal({ title = "", body = "", footer = "", maxWidth = "760px" }) {
+      const root = document.getElementById("modal-root");
+      root.innerHTML = `
+        <div class="modal-backdrop" onclick="closeModal(event)">
+          <div class="modal-panel" style="max-width:${maxWidth}" onclick="event.stopPropagation()">
+            <div class="p-5 sm:p-6">
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <div><h3 class="text-xl font-extrabold text-slate-800">${title}</h3></div>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                  <i class="fas fa-xmark text-slate-600"></i>
+                </button>
+              </div>
+              <div>${body}</div>
+              ${footer ? `<div class="mt-5">${footer}</div>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function closeModal() {
+      document.getElementById("modal-root").innerHTML = "";
+    }
+
+    function confirmDialog({
+      title = "تأكيد العملية",
+      message = "هل أنت متأكد؟",
+      confirmText = "تأكيد",
+      cancelText = "إلغاء",
+      type = "danger",
+      onConfirm = () => {}
+    }) {
+      const color = type === "danger" ? "bg-red-600 hover:bg-red-700" : "btn-primary";
+
+      window.__confirmDialogAction = () => {
+        try { onConfirm(); }
+        finally {
+          closeModal();
+          window.__confirmDialogAction = null;
+        }
+      };
+
+      openModal({
+        title,
+        body: `<p class="text-sm text-slate-600 leading-7">${message}</p>`,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">${cancelText}</button>
+            <button onclick="window.__confirmDialogAction && window.__confirmDialogAction()" class="btn flex-1 py-3 rounded-2xl text-white font-bold ${color}">${confirmText}</button>
+          </div>
+        `
+      });
+    }
+
+    function updateHeader() {
+      document.getElementById("header-shop-name").innerText = state.data.settings.shopName || "اسم الشركة";
+      if (state.data.settings.logo) {
+        document.getElementById("header-logo").src = state.data.settings.logo;
+        document.getElementById("header-logo").classList.remove("hidden");
+        document.getElementById("default-icon").classList.add("hidden");
+      } else {
+        document.getElementById("header-logo").classList.add("hidden");
+        document.getElementById("default-icon").classList.remove("hidden");
+      }
+      updateConnectionUI();
+      updatePendingSyncBadge();
+    }
+
+    function navigate(screen, params = {}) {
+      if (params.customerId) state.selectedCustomerId = params.customerId;
+      if (params.invoiceId) state.selectedInvoiceId = params.invoiceId;
+      state.currentScreen = screen;
+      state.screenStack.push(screen);
+      saveCurrentRoute();
+      render();
+    }
+
+    function render() {
+      rebuildCustomerBalances();
+      updatePendingSyncBadge();
+      applyThemeFromSettings();
+
+      const container = document.getElementById("app-container");
+      const navButtons = document.querySelectorAll(".nav-btn");
+
+      navButtons.forEach(btn => {
+        const id = btn.id.split("-")[1];
+        const active = (
+          id === state.currentScreen ||
+          (id === "customers" && state.currentScreen === "customerDetail") ||
+          (id === "invoices" && state.currentScreen === "invoiceDetail")
+        );
+
+        if (active) {
+          btn.classList.remove("text-gray-500");
+          btn.classList.add("text-blue-600");
+          btn.style.color = "var(--primary)";
+        } else {
+          btn.classList.remove("text-blue-600");
+          btn.classList.add("text-gray-500");
+          btn.style.color = "";
+        }
+      });
+
+      switch (state.currentScreen) {
+        case "home":
+          renderHome(container);
+          break;
+        case "customers":
+          renderCustomers(container);
+          break;
+        case "customerDetail":
+          renderCustomerDetail(container);
+          break;
+        case "invoices":
+          renderInvoices(container);
+          break;
+        case "invoiceDetail":
+          renderInvoiceDetail(container);
+          break;
+        case "reports":
+          renderReports(container);
+          break;
+        case "settings":
+          renderSettings(container);
+          break;
+        case "purchases":
+          renderPurchases(container);
+          break;
+        default:
+          renderHome(container);
+      }
+
+      updateHeader();
+      updateAlertsBadge();
+      updateSyncStatusBar();
+    }
+
+    function renderHome(el) {
+      const totalCustomers = state.data.customers.length;
+      const totalInvoices = state.data.invoices.length;
+      const totalRemaining = state.data.customers.reduce((acc, c) => acc + calculateCustomerBalance(c), 0);
+      const totalSales = state.data.invoices.reduce((acc, inv) => acc + calculateInvoiceTotals(inv).total, 0);
+      const totalPurchases = (state.data.purchases || []).reduce((acc, p) => acc + Number(p.price || 0), 0);
+      const alerts = getAllAlerts();
+
+      const latestInvoices = [...state.data.invoices]
+        .sort((a,b)=> new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+
+      el.innerHTML = `
+        <div class="space-y-6">
+          <section class="p-6 rounded-[30px] text-white card-shadow relative overflow-hidden" style="background:linear-gradient(135deg,var(--primary),var(--primary-2),#0f172a)">
+            <div class="absolute -top-12 -left-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-36 h-36 bg-cyan-300/10 rounded-full blur-2xl"></div>
+
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p class="opacity-80 text-sm">مرحبًا، ${escapeHtml(state.session.displayName)}</p>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-1">${escapeHtml(state.data.settings.companyName)}</h2>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="badge bg-white/12 text-white"><i class="fas fa-user-shield"></i> ${state.session.role === "admin" ? "مدير" : "موظف"}</span>
+                  <span class="badge bg-white/12 text-white"><i class="fas fa-cloud"></i> ${isLocalOnlyMode() ? "أوفلاين محلي" : (navigator.onLine ? "أونلاين" : "أوفلاين")}</span>
+                </div>
+              </div>
+              <div class="text-left">
+                <div class="text-sm opacity-80">إجمالي المبيعات</div>
+                <div class="text-3xl font-black mt-1">${moneyText(totalSales)}</div>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div class="bg-white/10 rounded-2xl p-3">
+                <div class="text-xs opacity-75">العملاء</div>
+                <div class="text-xl font-extrabold mt-1">${totalCustomers}</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <div class="text-xs opacity-75">الفواتير</div>
+                <div class="text-xl font-extrabold mt-1">${totalInvoices}</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <div class="text-xs opacity-75">المتبقي</div>
+                <div class="text-xl font-extrabold mt-1">${moneyText(totalRemaining)}</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <div class="text-xs opacity-75">المشتريات</div>
+                <div class="text-xl font-extrabold mt-1">${moneyText(totalPurchases)}</div>
+              </div>
+              <div class="bg-white/10 rounded-2xl p-3">
+                <div class="text-xs opacity-75">التنبيهات</div>
+                <div class="text-xl font-extrabold mt-1">${alerts.length}</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <button onclick="showAddCustomerModal()" class="btn fancy-card rounded-3xl p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mb-3">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="font-extrabold">عميل جديد</div>
+              <div class="text-xs text-slate-500 mt-1">إضافة عميل بسرعة</div>
+            </button>
+
+            <button onclick="showInvoiceModal()" class="btn fancy-card rounded-3xl p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-3">
+                <i class="fas fa-file-invoice"></i>
+              </div>
+              <div class="font-extrabold">فاتورة جديدة</div>
+              <div class="text-xs text-slate-500 mt-1">بيع وطباعة مباشرة</div>
+            </button>
+
+            <button onclick="showPaymentModal()" class="btn fancy-card rounded-3xl p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center mb-3">
+                <i class="fas fa-hand-holding-dollar"></i>
+              </div>
+              <div class="font-extrabold">دفعة عميل</div>
+              <div class="text-xs text-slate-500 mt-1">سداد دين</div>
+            </button>
+
+            <button onclick="showManualDebtModal()" class="btn fancy-card rounded-3xl p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-3">
+                <i class="fas fa-circle-plus"></i>
+              </div>
+              <div class="font-extrabold">إضافة دين</div>
+              <div class="text-xs text-slate-500 mt-1">دين مباشر</div>
+            </button>
+
+            <button onclick="navigate('purchases')" class="btn fancy-card rounded-3xl p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
+                <i class="fas fa-cart-shopping"></i>
+              </div>
+              <div class="font-extrabold">المشتريات</div>
+              <div class="text-xs text-slate-500 mt-1">إدارة الموردين والأسعار</div>
+            </button>
+          </section>
+      `;
+      
+${alerts.length ? `
+          <section class="section-card p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-extrabold text-slate-800">التنبيهات المهمة</h3>
+              <button onclick="openAlertsModal()" class="text-sm font-bold" style="color:var(--primary)">عرض الكل</button>
+            </div>
+            <div class="space-y-3">
+              ${alerts.slice(0,3).map(a => `
+                <button onclick="navigate('customerDetail',{customerId:'${a.customerId}'})" class="w-full text-right p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="font-bold ${a.type === 'overdue' ? 'text-red-600' : 'text-amber-600'}">${a.title}</div>
+                      <div class="text-sm text-slate-600 mt-1">${a.text}</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-2xl ${a.type === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'} flex items-center justify-center shrink-0">
+                      <i class="fas ${a.type === 'overdue' ? 'fa-clock' : 'fa-credit-card'}"></i>
+                    </div>
+                  </div>
+                </button>
+              `).join("")}
+            </div>
+          </section>` : ""}
+
+          <section class="section-card p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-extrabold text-slate-800">آخر الفواتير</h3>
+              <button onclick="navigate('invoices')" class="text-sm font-bold" style="color:var(--primary)">عرض الكل</button>
+            </div>
+
+            <div class="space-y-3">
+              ${latestInvoices.map(inv => {
+                const customer = getCustomerById(inv.customerId);
+                const totals = calculateInvoiceTotals(inv);
+                return `
+                  <button onclick="navigate('invoiceDetail',{invoiceId:'${inv.id}'})" class="w-full fancy-card rounded-[24px] p-4 text-right">
+                    <div class="flex justify-between gap-4 items-center">
+                      <div class="min-w-0">
+                        <div class="font-extrabold text-slate-800">#${escapeHtml(inv.invoiceNumber)}</div>
+                        <div class="text-sm text-slate-500 mt-1">${escapeHtml(customer?.name || "عميل غير معروف")}</div>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                          <span class="badge badge-blue"><i class="fas fa-file-invoice"></i> فاتورة</span>
+                          ${totals.remaining > 0 ? `<span class="badge badge-red"><i class="fas fa-wallet"></i> متبقي ${moneyText(totals.remaining)}</span>` : `<span class="badge badge-green"><i class="fas fa-circle-check"></i> مدفوعة</span>`}
+                        </div>
+                      </div>
+                      <div class="text-left shrink-0">
+                        <div class="font-extrabold text-slate-800">${moneyText(totals.total)}</div>
+                        <div class="text-[11px] text-slate-400 mt-1">${formatDate(inv.date, false)}</div>
+                      </div>
+                    </div>
+                  </button>
+                `;
+              }).join("") || `<div class="text-center text-slate-400 py-14">لا توجد فواتير حالياً</div>`}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    function renderCustomerListItem(customer) {
+      const balance = calculateCustomerBalance(customer);
+      const limit = getCreditLimit(customer);
+      const overdue = getOverdueStatus(customer);
+
+      return `
+        <div class="fancy-card rounded-[24px] p-4">
+          <div class="flex justify-between items-center gap-4">
+            <button onclick="navigate('customerDetail',{customerId:'${customer.id}'})" class="flex-1 text-right min-w-0">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-primary-soft text-primary flex items-center justify-center font-extrabold">${escapeHtml((customer.name || "?")[0])}</div>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-slate-800 truncate">${escapeHtml(customer.name)}</p>
+                  <p class="text-xs text-slate-500 truncate">${escapeHtml(customer.phone || "بدون رقم هاتف")}</p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    ${canViewFinancials() ? `<span class="badge badge-slate"><i class="fas fa-credit-card"></i> الحد ${formatCurrency(limit)}</span>` : ""}
+                    ${canViewFinancials() && balance > limit ? `<span class="badge badge-yellow"><i class="fas fa-triangle-exclamation"></i> تجاوز الحد</span>` : ""}
+                    ${overdue.overdue ? `<span class="badge badge-red"><i class="fas fa-clock"></i> متأخر ${overdue.days} يوم</span>` : ""}
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <div class="text-left shrink-0">
+              <p class="text-lg font-extrabold ${canViewFinancials() ? (balance > 0 ? 'text-red-600' : 'text-green-600') : 'text-slate-400'}">
+                ${canViewFinancials() ? formatCurrency(balance) : "••••"}
+              </p>
+              <p class="text-[10px] text-slate-400 italic">${canViewFinancials() ? "الرصيد" : "مخفي"}</p>
+            </div>
+
+            <div class="flex gap-2 shrink-0">
+              <button onclick="event.stopPropagation(); showEditCustomerModal('${customer.id}')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button onclick="event.stopPropagation(); deleteCustomer('${customer.id}')" class="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCustomers(el) {
+      el.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center gap-3 flex-wrap">
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-800">العملاء</h2>
+              <p class="text-sm text-slate-500 mt-1">إدارة العملاء والدفعات والديون والفواتير</p>
+            </div>
+            <button onclick="showAddCustomerModal()" class="btn text-white px-4 py-3 rounded-2xl text-sm shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+              <i class="fas fa-user-plus ml-1"></i> إضافة عميل
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" oninput="searchCustomers(this.value)" placeholder="ابحث باسم العميل أو رقم الهاتف..." class="input pr-11 fancy-card">
+            <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          </div>
+
+          <div id="customer-list" class="space-y-3">
+            ${(state.data.customers || []).map(c => renderCustomerListItem(c)).join("") || '<p class="text-center text-slate-400 py-10 fancy-card rounded-[28px]">لا يوجد عملاء بعد</p>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCustomerDetail(el) {
+      const customer = getCustomerById(state.selectedCustomerId);
+      if (!customer) return navigate("customers");
+
+      const invoices = (state.data.invoices || []).filter(i => i.customerId === customer.id).sort((a,b)=> new Date(b.date)-new Date(a.date));
+      const payments = (customer.payments || []).slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
+      const manualDebts = (customer.manualDebts || []).slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
+      const balance = calculateCustomerBalance(customer);
+      const creditLimit = getCreditLimit(customer);
+      const overdueInfo = getOverdueStatus(customer);
+
+      el.innerHTML = `
+        <div class="space-y-5">
+          <div class="fancy-card rounded-[30px] p-5">
+            <div class="flex justify-between items-start gap-4 flex-wrap">
+              <div class="flex gap-4 min-w-0">
+                <div class="w-16 h-16 bg-primary-soft rounded-[22px] flex items-center justify-center text-primary text-2xl font-extrabold shrink-0">
+                  ${escapeHtml((customer.name || "?")[0])}
+                </div>
+                <div class="min-w-0">
+                  <h2 class="text-2xl font-extrabold text-slate-800 truncate">${escapeHtml(customer.name)}</h2>
+                  <p class="text-sm text-slate-500 mt-1">${escapeHtml(customer.phone || "بدون رقم هاتف")}</p>
+                  <div class="flex flex-wrap gap-2 mt-3">
+                    ${canViewFinancials() ? `<span class="badge badge-slate"><i class="fas fa-credit-card"></i> الحد ${formatCurrency(creditLimit)}</span>` : ""}
+                    ${canViewFinancials() && balance > creditLimit ? `<span class="badge badge-yellow"><i class="fas fa-triangle-exclamation"></i> تجاوز الحد</span>` : ""}
+                    ${overdueInfo.overdue ? `<span class="badge badge-red"><i class="fas fa-clock"></i> متأخر ${overdueInfo.days} يوم</span>` : ""}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-2 shrink-0">
+                ${customer.phone ? `
+                <button onclick="sendWhatsApp('${customer.id}')" class="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-2xl flex items-center justify-center shadow-sm">
+                  <i class="fab fa-whatsapp"></i>
+                </button>` : ""}
+
+                <button onclick="showPaymentModal('${customer.id}')" class="w-11 h-11 text-white rounded-2xl flex items-center justify-center shadow-sm" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+                  <i class="fas fa-hand-holding-dollar"></i>
+                </button>
+
+                <button onclick="showInvoiceModal('${customer.id}')" class="w-11 h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center shadow-sm">
+                  <i class="fas fa-file-invoice"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="stat-tile p-4 rounded-[24px]">
+                <p class="text-xs text-slate-400">الرصيد الحالي</p>
+                <p class="font-extrabold text-xl ${canViewFinancials() ? (balance > 0 ? 'text-red-600' : 'text-green-600') : 'text-slate-400'} mt-1">${canViewFinancials() ? formatCurrency(balance) : "••••"}</p>
+              </div>
+              <div class="stat-tile p-4 rounded-[24px]">
+                <p class="text-xs text-slate-400">عدد الفواتير</p>
+                <p class="font-extrabold text-xl text-slate-800 mt-1">${invoices.length}</p>
+              </div>
+              <div class="stat-tile p-4 rounded-[24px]">
+                <p class="text-xs text-slate-400">الدفعات</p>
+                <p class="font-extrabold text-xl text-green-700 mt-1">${payments.length}</p>
+              </div>
+              <div class="stat-tile p-4 rounded-[24px]">
+                <p class="text-xs text-slate-400">آخر دفعة</p>
+                <p class="font-extrabold text-sm text-slate-800 mt-2">${getLastPaymentDate(customer) ? formatDate(getLastPaymentDate(customer), false) : "لا يوجد"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button onclick="showInvoiceModal('${customer.id}')" class="btn bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-extrabold">فاتورة جديدة</button>
+            <button onclick="showPaymentModal('${customer.id}')" class="btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-extrabold">إضافة دفعة</button>
+            <button onclick="showManualDebtModal('${customer.id}')" class="btn bg-red-500 hover:bg-red-600 text-white py-3 rounded-2xl font-extrabold">إضافة دين</button>
+            <button onclick="openExportCustomerOptions('${customer.id}')" class="btn bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-2xl font-extrabold">تصدير</button>
+          </div>
+
+          <div class="section-card p-4">
+            <h3 class="font-extrabold text-slate-800 mb-4">آخر الفواتير</h3>
+            <div class="space-y-3">
+              ${invoices.map(inv => {
+                const totals = calculateInvoiceTotals(inv);
+                return `
+                  <button onclick="navigate('invoiceDetail',{invoiceId:'${inv.id}'})" class="w-full bg-white border border-slate-200 rounded-[22px] p-4 text-right">
+                    <div class="flex justify-between items-center gap-3">
+                      <div>
+                        <div class="font-extrabold text-slate-800">#${escapeHtml(inv.invoiceNumber)}</div>
+                        <div class="text-sm text-slate-500 mt-1">${formatDate(inv.date)}</div>
+                      </div>
+                      <div class="text-left">
+                        <div class="font-extrabold text-slate-800">${moneyText(totals.total)}</div>
+                        ${totals.remaining > 0 ? `<div class="text-xs text-red-600 font-bold">متبقي ${moneyText(totals.remaining)}</div>` : `<div class="text-xs text-green-600 font-bold">مدفوعة</div>`}
+                      </div>
+                    </div>
+                  </button>
+                `;
+              }).join("") || `<div class="text-center text-slate-400 py-10 bg-white rounded-[22px] border border-slate-100">لا توجد فواتير</div>`}
+            </div>
+          </div>
+
+          ${(manualDebts.length || payments.length) ? `
+          <div class="section-card p-4">
+            <h3 class="font-extrabold text-slate-800 mb-4">الديون والدفعات</h3>
+            <div class="space-y-3">
+              ${manualDebts.map(d => `
+                <div class="bg-white border border-slate-200 rounded-[22px] p-4 flex justify-between gap-3">
+                  <div>
+                    <div class="font-extrabold text-red-600">دين مباشر</div>
+                    <div class="text-sm text-slate-500 mt-1">${escapeHtml(d.note || "-")}</div>
+                    <div class="text-xs text-slate-400 mt-1">${formatDate(d.date)}</div>
+                  </div>
+                  <div class="font-extrabold text-red-600">${moneyText(d.amount)}</div>
+                </div>
+              `).join("")}
+              ${payments.map(p => `
+                <div class="bg-white border border-slate-200 rounded-[22px] p-4 flex justify-between gap-3">
+                  <div>
+                    <div class="font-extrabold text-green-700">دفعة</div>
+                    <div class="text-sm text-slate-500 mt-1">${escapeHtml(p.note || "-")}</div>
+                    <div class="text-xs text-slate-400 mt-1">${formatDate(p.date)}</div>
+                  </div>
+                  <div class="font-extrabold text-green-700">${moneyText(p.amount)}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderInvoices(el) {
+      const invoices = [...state.data.invoices].sort((a,b)=> new Date(b.date)-new Date(a.date));
+
+      el.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center gap-3 flex-wrap">
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-800">الفواتير</h2>
+              <p class="text-sm text-slate-500 mt-1">جميع فواتير البيع والطباعة والتصدير</p>
+            </div>
+            <button onclick="showInvoiceModal()" class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-2xl text-sm shadow-lg">
+              <i class="fas fa-file-invoice ml-1"></i> فاتورة جديدة
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            ${invoices.map(inv => {
+              const customer = getCustomerById(inv.customerId);
+              const totals = calculateInvoiceTotals(inv);
+              return `
+                <div class="fancy-card rounded-[24px] p-4">
+                  <div class="flex justify-between items-center gap-4">
+                    <button onclick="navigate('invoiceDetail',{invoiceId:'${inv.id}'})" class="flex-1 text-right min-w-0">
+                      <div class="font-extrabold text-slate-800">#${escapeHtml(inv.invoiceNumber)}</div>
+                      <div class="text-sm text-slate-500 mt-1">${escapeHtml(customer?.name || "عميل غير معروف")}</div>
+                      <div class="flex flex-wrap gap-2 mt-2">
+                        <span class="badge badge-blue"><i class="fas fa-calendar"></i> ${formatDate(inv.date, false)}</span>
+                        ${totals.remaining > 0 ? `<span class="badge badge-red"><i class="fas fa-wallet"></i> متبقي ${moneyText(totals.remaining)}</span>` : `<span class="badge badge-green"><i class="fas fa-circle-check"></i> مكتملة</span>`}
+                      </div>
+                    </button>
+
+                    <div class="text-left shrink-0">
+                      <div class="font-extrabold text-slate-800">${moneyText(totals.total)}</div>
+                      <div class="flex gap-2 mt-2">
+                        <button onclick="event.stopPropagation(); navigate('invoiceDetail',{invoiceId:'${inv.id}'})" class="text-[11px] px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700">عرض</button>
+                        <button onclick="event.stopPropagation(); openInvoicePreview('${inv.id}')" class="text-[11px] px-3 py-1.5 rounded-full text-white" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">معاينة</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("") || `<div class="text-center text-slate-400 py-12 fancy-card rounded-[28px]">لا توجد فواتير</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderInvoiceDetail(el) {
+      const invoice = getInvoiceById(state.selectedInvoiceId);
+      if (!invoice) return navigate("invoices");
+
+      const customer = getCustomerById(invoice.customerId);
+      const totals = calculateInvoiceTotals(invoice);
+
+      el.innerHTML = `
+        <div class="space-y-5">
+          <div class="section-card p-5">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <h2 class="text-2xl font-extrabold text-slate-800">تفاصيل الفاتورة</h2>
+                <p class="text-sm text-slate-500 mt-1">رقم الفاتورة: #${escapeHtml(invoice.invoiceNumber)}</p>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button onclick="openInvoicePreview('${invoice.id}')" class="btn text-white px-4 py-3 rounded-2xl font-bold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">معاينة</button>
+                <button onclick="printInvoice('${invoice.id}')" class="btn bg-slate-900 hover:bg-black text-white px-4 py-3 rounded-2xl font-bold">طباعة</button>
+                <button onclick="downloadInvoicePDF('${invoice.id}')" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-2xl font-bold">PDF</button>
+                <button onclick="downloadInvoiceImage('${invoice.id}')" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-2xl font-bold">صورة</button>
+                <button onclick="downloadInvoiceExcel('${invoice.id}')" class="btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl font-bold">Excel</button>
+                <button onclick="downloadInvoiceWord('${invoice.id}')" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-2xl font-bold">Word</button>
+              </div>
+            </div>
+
+            <div class="mt-5 grid sm:grid-cols-2 gap-4">
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="font-extrabold text-slate-800 mb-2">بيانات العميل</div>
+                <div class="text-sm text-slate-600 leading-8">
+                  <div><strong>الاسم:</strong> ${escapeHtml(customer?.name || "-")}</div>
+                  <div><strong>الهاتف:</strong> ${escapeHtml(customer?.phone || "-")}</div>
+                  <div><strong>التاريخ:</strong> ${formatDate(invoice.date)}</div>
+                  ${state.data.settings.printEmployeeName ? `<div><strong>الموظف:</strong> ${escapeHtml(getUserDisplayName(invoice.createdBy))}</div>` : ""}
+                </div>
+              </div>
+
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="font-extrabold text-slate-800 mb-2">ملخص الفاتورة</div>
+                <div class="text-sm text-slate-600 leading-8">
+                  <div><strong>الإجمالي الفرعي:</strong> ${moneyText(totals.subtotal)}</div>
+                  <div><strong>الخصم:</strong> ${moneyText(totals.discount)}</div>
+                  <div><strong>الإجمالي النهائي:</strong> ${moneyText(totals.total)}</div>
+                  <div><strong>المدفوع:</strong> ${moneyText(totals.paid)}</div>
+                  <div><strong>المتبقي:</strong> ${moneyText(totals.remaining)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 overflow-auto bg-white rounded-[24px] border border-slate-200">
+              <table class="table-modern">
+                <thead>
+                  <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(invoice.items || []).map(item => `
+                    <tr>
+                      <td>${escapeHtml(item.name || "-")}</td>
+                      <td>${item.qty || 0}</td>
+                      <td>${moneyText(item.price || 0)}</td>
+                      <td>${moneyText(item.total || 0)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderReports(el) {
+      if (!hasPermission("canViewReports")) {
+        el.innerHTML = `
+          <div class="section-card p-8 text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-4">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800">التقارير محجوبة</h2>
+            <p class="text-sm text-slate-500 mt-3">ليس لديك صلاحية لعرض التقارير المالية</p>
+          </div>
+        `;
+        return;
+      }
+
+      const totalCustomers = state.data.customers.length;
+      const totalInvoices = state.data.invoices.length;
+      const totalSales = state.data.invoices.reduce((a,b)=> a + calculateInvoiceTotals(b).total, 0);
+      const totalPaid = state.data.invoices.reduce((a,b)=> a + calculateInvoiceTotals(b).paid, 0);
+      const totalRemaining = state.data.customers.reduce((a,b)=> a + calculateCustomerBalance(b), 0);
+      const totalPurchases = (state.data.purchases || []).reduce((a,b)=> a + Number(b.price || 0), 0);
+
+      el.innerHTML = `
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-2xl font-extrabold">التقارير</h2>
+            <p class="text-sm text-slate-500 mt-1">ملخص المبيعات والمدفوع والمتبقي والمشتريات</p>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div class="stat-tile p-4 rounded-[24px]">
+              <p class="text-xs text-slate-400">العملاء</p>
+              <p class="text-2xl font-extrabold text-slate-800">${totalCustomers}</p>
+            </div>
+            <div class="stat-tile p-4 rounded-[24px]">
+              <p class="text-xs text-slate-400">الفواتير</p>
+              <p class="text-2xl font-extrabold text-slate-800">${totalInvoices}</p>
+            </div>
+            <div class="stat-tile p-4 rounded-[24px]">
+              <p class="text-xs text-slate-400">إجمالي المبيعات</p>
+              <p class="text-2xl font-extrabold text-blue-700">${formatCurrency(totalSales)}</p>
+            </div>
+            <div class="stat-tile p-4 rounded-[24px]">
+              <p class="text-xs text-slate-400">المتبقي</p>
+              <p class="text-2xl font-extrabold text-red-600">${formatCurrency(totalRemaining)}</p>
+            </div>
+            <div class="stat-tile p-4 rounded-[24px]">
+              <p class="text-xs text-slate-400">المشتريات</p>
+              <p class="text-2xl font-extrabold text-amber-600">${formatCurrency(totalPurchases)}</p>
+            </div>
+          </div>
+
+          <div class="section-card p-4">
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="text-sm text-slate-500">إجمالي المدفوع</div>
+                <div class="text-3xl font-black text-green-700 mt-2">${formatCurrency(totalPaid)}</div>
+              </div>
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="text-sm text-slate-500">الخصومات</div>
+                <div class="text-3xl font-black text-amber-600 mt-2">${formatCurrency(state.data.invoices.reduce((a,b)=> a + Number(b.discount || 0), 0))}</div>
+              </div>
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="text-sm text-slate-500">عدد المشتريات</div>
+                <div class="text-3xl font-black mt-2 text-slate-800">${(state.data.purchases || []).length}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-extrabold text-slate-800">آخر المشتريات</h3>
+              <button onclick="navigate('purchases')" class="text-sm font-bold" style="color:var(--primary)">فتح صفحة المشتريات</button>
+            </div>
+            <div class="space-y-3">
+              ${(state.data.purchases || []).slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,8).map(p => `
+                <div class="bg-white border border-slate-200 rounded-[22px] p-4 flex justify-between gap-4">
+                  <div>
+                    <div class="font-extrabold text-slate-800">${escapeHtml(p.supplierName || "-")}</div>
+                    <div class="text-sm text-slate-500 mt-1">${escapeHtml(p.notes || "-")}</div>
+                    <div class="text-xs text-slate-400 mt-1">${formatDate(p.date)}</div>
+                  </div>
+                  <div class="font-extrabold text-amber-700">${formatCurrency(p.price || 0)}</div>
+                </div>
+              `).join("") || `<div class="text-center text-slate-400 py-10 bg-white rounded-[22px] border border-slate-100">لا توجد مشتريات</div>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPurchases(el) {
+      if (!hasPermission("canManagePurchases") && !hasPermission("canViewReports")) {
+        el.innerHTML = `
+          <div class="section-card p-8 text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-4">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800">المشتريات محجوبة</h2>
+            <p class="text-sm text-slate-500 mt-3">ليس لديك صلاحية لعرض أو إدارة المشتريات</p>
+          </div>
+        `;
+        return;
+      }
+
+      const purchases = [...(state.data.purchases || [])].sort((a,b)=> new Date(b.date)-new Date(a.date));
+
+      el.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center gap-3 flex-wrap">
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-800">قائمة المشتريات</h2>
+              <p class="text-sm text-slate-500 mt-1">اسم المورد والسعر والملاحظات وتظهر بالتقارير</p>
+            </div>
+            ${hasPermission("canManagePurchases") ? `
+            <button onclick="showAddPurchaseModal()" class="btn text-white px-4 py-3 rounded-2xl text-sm shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+              <i class="fas fa-cart-plus ml-1"></i> إضافة مشتريات
+            </button>` : ""}
+          </div>
+
+          <div class="space-y-3">
+            ${purchases.map(p => `
+              <div class="fancy-card rounded-[24px] p-4">
+                <div class="flex justify-between items-center gap-4">
+                  <div class="min-w-0">
+                    <div class="font-extrabold text-slate-800">${escapeHtml(p.supplierName || "-")}</div>
+                    <div class="text-sm text-slate-500 mt-1">${escapeHtml(p.notes || "-")}</div>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      <span class="badge badge-blue"><i class="fas fa-calendar"></i> ${formatDate(p.date, false)}</span>
+                      <span class="badge badge-yellow"><i class="fas fa-money-bill"></i> ${formatCurrency(p.price || 0)}</span>
+                    </div>
+                  </div>
+                  ${hasPermission("canManagePurchases") ? `
+                  <div class="flex gap-2 shrink-0">
+                    <button onclick="showEditPurchaseModal('${p.id}')" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button onclick="deletePurchase('${p.id}')" class="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>` : ""}
+                </div>
+              </div>
+            `).join("") || `<div class="text-center text-slate-400 py-12 fancy-card rounded-[28px]">لا توجد مشتريات</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPermissionCheckboxes(prefix, currentPermissions = EMPLOYEE_DEFAULT_PERMISSIONS) {
+      const labels = {
+        canViewFinancials: "رؤية الأرقام المالية والديون",
+        canAddInvoice: "إضافة فاتورة",
+        canEditInvoice: "تعديل الفاتورة",
+        canDeleteInvoice: "حذف الفاتورة",
+        canAddPayment: "إضافة دفعة",
+        canAddManualDebt: "إضافة دين مباشر",
+        canManageCustomers: "إدارة العملاء",
+        canViewReports: "رؤية التقارير",
+        canManageUsers: "إدارة المستخدمين",
+        canExport: "التصدير والطباعة",
+        canManagePurchases: "إدارة المشتريات"
+      };
+
+      return Object.keys(labels).map(key => `
+        <label class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="font-bold text-sm">${labels[key]}</span>
+          <input id="${prefix}-${key}" type="checkbox" class="scale-125" ${currentPermissions[key] ? "checked" : ""}>
+        </label>
+      `).join("");
+    }
+
+    function collectPermissionsFromForm(prefix) {
+      const permissions = {};
+      Object.keys(DEFAULT_USER_PERMISSIONS).forEach(key => {
+        permissions[key] = !!document.getElementById(`${prefix}-${key}`)?.checked;
+      });
+      return permissions;
+    }
+
+    function showUserLoginModal() {
+      const license = getCurrentLicense();
+      if (!license.usersEnabled) {
+        showToast("تسجيل المستخدمين غير مفعل لهذا المفتاح", "warning");
+        return;
+      }
+
+      openModal({
+        title: "تسجيل دخول المستخدم",
+        maxWidth: "520px",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم المستخدم</label>
+              <input id="user-login-username" type="text" class="input" placeholder="أدخل اسم المستخدم">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+              <input id="user-login-password" type="password" class="input" placeholder="أدخل كلمة المرور">
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="loginLocalUser()" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">دخول</button>
+          </div>
+        `
+      });
+    }
+
+    function loginLocalUser() {
+      const username = document.getElementById("user-login-username")?.value?.trim();
+      const password = document.getElementById("user-login-password")?.value?.trim();
+
+      const user = (state.data.users || []).find(u =>
+        u.username === username &&
+        u.password === password &&
+        u.isActive !== false
+      );
+
+      if (!user) {
+        showToast("بيانات الدخول غير صحيحة", "error");
+        return;
+      }
+
+      state.session = {
+        userId: user.id,
+        displayName: user.name || user.username,
+        role: user.role || "user",
+        permissions: {
+          ...(user.role === "admin" ? DEFAULT_USER_PERMISSIONS : EMPLOYEE_DEFAULT_PERMISSIONS),
+          ...(user.permissions || {})
+        }
+      };
+
+      closeModal();
+      render();
+      showToast(`مرحبًا ${state.session.displayName}`, "success");
+    }
+
+    function logoutLocalUser() {
+      state.session = {
+        userId: "owner",
+        displayName: "المدير",
+        role: "admin",
+        permissions: { ...DEFAULT_USER_PERMISSIONS }
+      };
+      render();
+      showToast("تم تسجيل الخروج من المستخدم الحالي", "success");
+    }
+    
+function getUserDisplayName(userId) {
+      const user = (state.data.users || []).find(u => u.id === userId);
+      return user?.name || user?.username || "المدير";
+    }
+
+    function renderSessionSection() {
+      const license = getCurrentLicense();
+      return `
+        <div class="section-card p-6 space-y-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 class="font-extrabold text-slate-800">جلسة المستخدم</h3>
+              <p class="text-sm text-slate-500 mt-1">المستخدم الحالي والصلاحيات المرتبطة به</p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              ${license.usersEnabled ? `
+                <button onclick="showUserLoginModal()" class="btn text-white px-4 py-3 rounded-2xl font-bold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+                  <i class="fas fa-right-to-bracket ml-1"></i> دخول مستخدم
+                </button>
+              ` : ""}
+              <button onclick="logoutLocalUser()" class="btn bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-3 rounded-2xl font-bold">
+                <i class="fas fa-arrow-right-from-bracket ml-1"></i> خروج المستخدم
+              </button>
+              <button onclick="logoutLicenseCompletely()" class="btn bg-red-50 hover:bg-red-100 text-red-700 px-4 py-3 rounded-2xl font-bold">
+                <i class="fas fa-key ml-1"></i> تسجيل خروج المفتاح
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <div class="font-extrabold text-slate-800">${escapeHtml(state.session.displayName || "غير معروف")}</div>
+                <div class="text-sm text-slate-500 mt-1">${state.session.role === "admin" ? "مدير" : "موظف"}</div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="badge ${state.session.role === 'admin' ? 'badge-purple' : 'badge-slate'}">
+                  <i class="fas ${state.session.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
+                  ${state.session.role === 'admin' ? 'مدير' : 'موظف'}
+                </span>
+                <span class="badge ${canViewFinancials() ? 'badge-green' : 'badge-yellow'}">
+                  <i class="fas ${canViewFinancials() ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                  ${canViewFinancials() ? 'يرى الأرقام' : 'الأرقام مخفية'}
+                </span>
+                <span class="badge ${isLocalOnlyMode() ? 'badge-slate' : 'badge-blue'}">
+                  <i class="fas ${isLocalOnlyMode() ? 'fa-hard-drive' : 'fa-cloud'}"></i>
+                  ${isLocalOnlyMode() ? 'نسخة أوفلاين محلية' : 'نسخة سحابية'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderUsersSettingsSection() {
+      if (!hasPermission("canManageUsers")) return "";
+
+      return `
+        <div class="section-card p-6 space-y-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="font-extrabold text-slate-800">المستخدمون والصلاحيات</h3>
+              <p class="text-sm text-slate-500 mt-1">إضافة موظف وتحديد ما يراه ويتحكم به</p>
+            </div>
+            <button onclick="showAddUserModal()" class="btn text-white px-4 py-3 rounded-2xl font-bold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+              <i class="fas fa-user-plus ml-1"></i> إضافة مستخدم
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            ${(state.data.users || []).map(user => `
+              <div class="bg-white rounded-[24px] border border-slate-200 p-4">
+                <div class="flex justify-between items-center gap-4">
+                  <div>
+                    <div class="font-extrabold text-slate-800">${escapeHtml(user.name || "")}</div>
+                    <div class="text-sm text-slate-500 mt-1">${escapeHtml(user.username || "")}</div>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      <span class="badge ${user.role === 'admin' ? 'badge-purple' : 'badge-slate'}">
+                        <i class="fas ${user.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
+                        ${user.role === 'admin' ? 'مدير' : 'موظف'}
+                      </span>
+                      <span class="badge ${user.isActive ? 'badge-green' : 'badge-red'}">
+                        <i class="fas ${user.isActive ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                        ${user.isActive ? 'نشط' : 'معطل'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-2">
+                    <button onclick="showEditUserModal('${user.id}')" class="w-11 h-11 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    ${user.id !== "owner" ? `
+                    <button onclick="deleteUser('${user.id}')" class="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center">
+                      <i class="fas fa-trash"></i>
+                    </button>` : ""}
+                  </div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSettings(el) {
+      const presetColors = ["#1d4ed8","#0f766e","#7c3aed","#be123c","#ea580c","#0891b2","#15803d","#334155"];
+
+      el.innerHTML = `
+        <div class="space-y-6">
+          ${renderSessionSection()}
+
+          <div>
+            <h2 class="text-2xl font-extrabold">الإعدادات</h2>
+            <p class="text-sm text-slate-500 mt-1">بيانات الشركة والمستخدمين والألوان والنسخ الاحتياطي</p>
+          </div>
+
+          <div class="section-card p-6 space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">اسم الشركة</label>
+                <input id="set-company-name" type="text" class="input" value="${escapeHtml(state.data.settings.companyName || "")}" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">اسم ثانوي</label>
+                <input id="set-company-secondary-name" type="text" class="input" value="${escapeHtml(state.data.settings.companySecondaryName || "")}" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الهاتف</label>
+                <input id="set-shop-phone" type="text" class="input" value="${escapeHtml(state.data.settings.shopPhone || "")}" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">العملة</label>
+                <input id="set-currency" type="text" class="input" value="${escapeHtml(state.data.settings.currency || "شيكل")}" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">العنوان</label>
+              <input id="set-shop-address" type="text" class="input" value="${escapeHtml(state.data.settings.shopAddress || "")}" ${state.session.role !== "admin" ? "disabled" : ""}>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظة أسفل الفاتورة</label>
+              <textarea id="set-footer-note" class="textarea" ${state.session.role !== "admin" ? "disabled" : ""}>${escapeHtml(state.data.settings.footerNote || "")}</textarea>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">رابط صورة الشعار</label>
+                <input id="set-logo-url" type="text" class="input" placeholder="https://example.com/logo.png" value="${escapeHtml(state.data.settings.logoSourceType === 'url' ? (state.data.settings.logo || '') : '')}" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">رفع شعار من الجهاز</label>
+                <input id="set-logo-file" type="file" accept="image/*" class="input" ${state.session.role !== "admin" ? "disabled" : ""}>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-[22px] p-4">
+              <div class="font-extrabold text-slate-800 mb-3">معاينة الشعار</div>
+              <div class="flex items-center gap-4 flex-wrap">
+                <div class="w-24 h-24 rounded-[24px] overflow-hidden border border-slate-200 bg-white flex items-center justify-center">
+                  ${state.data.settings.logo ? `<img src="${state.data.settings.logo}" class="w-full h-full object-cover">` : `<i class="fas fa-store text-2xl text-slate-400"></i>`}
+                </div>
+                ${state.session.role === "admin" ? `
+                <button onclick="removeLogo()" class="btn px-4 py-3 rounded-2xl bg-red-50 hover:bg-red-100 text-red-700 font-bold">حذف الشعار</button>` : ""}
+              </div>
+            </div>
+
+            <div class="section-card p-4 rounded-[24px]">
+              <div class="font-extrabold text-slate-800 mb-3">لون الموقع</div>
+              <div class="flex flex-wrap gap-3 mb-4">
+                ${presetColors.map(color => `
+                  <button type="button" class="color-swatch" style="background:${color}" onclick="setPrimaryColorPreview('${color}')"></button>
+                `).join("")}
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">كود اللون</label>
+                <input id="set-primary-color" type="color" class="input h-[52px]" value="${escapeHtml(state.data.settings.primaryColor || '#1d4ed8')}" ${state.session.role !== "admin" ? "disabled" : ""} onchange="setPrimaryColorPreview(this.value)">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <label class="flex items-center justify-between bg-white border border-slate-200 rounded-[22px] p-4">
+                <span class="font-bold text-sm">إظهار اسم الموظف على الفاتورة</span>
+                <input id="set-print-employee-name" type="checkbox" class="scale-125" ${state.data.settings.printEmployeeName ? "checked" : ""} ${state.session.role !== "admin" ? "disabled" : ""}>
+              </label>
+              <div class="bg-white border border-slate-200 rounded-[22px] p-4 text-sm text-slate-600">
+                <strong>نوع النسخة:</strong> ${isLocalOnlyMode() ? "أوفلاين محلية فقط" : "سحابية مع مزامنة"}
+              </div>
+            </div>
+
+            ${state.session.role === "admin" ? `
+            <button onclick="saveSettings()" class="btn w-full text-white py-3 rounded-2xl font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ الإعدادات</button>` : ""}
+          </div>
+
+          ${renderUsersSettingsSection()}
+
+          <div class="section-card p-6 space-y-4">
+            <h3 class="font-extrabold text-slate-800">النسخ الاحتياطي</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="exportBackup()" class="btn bg-slate-900 text-white py-3 rounded-2xl text-sm">
+                <i class="fas fa-download ml-1"></i> تحميل نسخة
+              </button>
+              <button onclick="importBackup()" class="btn bg-slate-100 text-slate-700 py-3 rounded-2xl text-sm">
+                <i class="fas fa-upload ml-1"></i> استعادة نسخة
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setPrimaryColorPreview(color) {
+      const input = document.getElementById("set-primary-color");
+      if (input) input.value = color;
+      const old = state.data.settings.primaryColor;
+      state.data.settings.primaryColor = color;
+      applyThemeFromSettings();
+      state.data.settings.primaryColor = old;
+    }
+
+    function searchCustomers(query) {
+      const q = (query || "").toLowerCase().trim();
+      const filtered = state.data.customers.filter(c =>
+        (c.name || "").toLowerCase().includes(q) || (c.phone || "").includes(q)
+      );
+      document.getElementById("customer-list").innerHTML = filtered.map(c => renderCustomerListItem(c)).join("") || '<p class="text-center text-slate-400 py-10 fancy-card rounded-[28px]">لا توجد نتائج</p>';
+    }
+
+    function updateAlertsBadge() {
+      const alerts = getAllAlerts();
+      const badge = document.getElementById("alerts-badge");
+      if (!badge) return;
+      badge.innerText = alerts.length;
+      badge.classList.toggle("hidden", alerts.length === 0);
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveSettings() {
+      if (state.session.role !== "admin") {
+        showToast("فقط المدير يمكنه تعديل الإعدادات", "warning");
+        return;
+      }
+
+      state.data.settings.companyName = document.getElementById("set-company-name")?.value?.trim() || DEFAULT_SETTINGS.companyName;
+      state.data.settings.companySecondaryName = document.getElementById("set-company-secondary-name")?.value?.trim() || "";
+      state.data.settings.shopName = state.data.settings.companyName;
+      state.data.settings.shopPhone = document.getElementById("set-shop-phone")?.value?.trim() || "";
+      state.data.settings.shopAddress = document.getElementById("set-shop-address")?.value?.trim() || "";
+      state.data.settings.currency = document.getElementById("set-currency")?.value?.trim() || "شيكل";
+      state.data.settings.footerNote = document.getElementById("set-footer-note")?.value?.trim() || "شكرًا لتعاملكم معنا";
+      state.data.settings.printEmployeeName = !!document.getElementById("set-print-employee-name")?.checked;
+      state.data.settings.primaryColor = document.getElementById("set-primary-color")?.value || "#1d4ed8";
+
+      const logoUrl = document.getElementById("set-logo-url")?.value?.trim();
+      const logoFile = document.getElementById("set-logo-file")?.files?.[0];
+
+      if (logoFile) {
+        state.data.settings.logo = await fileToDataUrl(logoFile);
+        state.data.settings.logoSourceType = "file";
+      } else if (logoUrl) {
+        state.data.settings.logo = logoUrl;
+        state.data.settings.logoSourceType = "url";
+      }
+
+      applyThemeFromSettings();
+      enqueueSyncOperation({ type: "save_settings", payload: { companyName: state.data.settings.companyName } });
+      saveAppState();
+      updateHeader();
+      render();
+      showToast("تم حفظ الإعدادات بنجاح", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function removeLogo() {
+      if (state.session.role !== "admin") return;
+      state.data.settings.logo = null;
+      state.data.settings.logoSourceType = "none";
+      saveAppState();
+      render();
+      showToast("تم حذف الشعار", "success");
+    }
+
+    function showAddCustomerModal() {
+      if (!hasPermission("canManageCustomers")) {
+        showToast("لا تملك صلاحية إضافة عميل", "warning");
+        return;
+      }
+
+      openModal({
+        title: "إضافة عميل جديد",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم العميل <span class="text-red-500">*</span></label>
+              <input id="customer-name" type="text" class="input" placeholder="مثال: أحمد محمد">
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">رقم الهاتف</label>
+                <input id="customer-phone" type="text" class="input" placeholder="اختياري">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الحد الائتماني</label>
+                <input id="customer-credit-limit" type="number" class="input" value="${state.data.settings.defaultCreditLimit || 0}">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">العنوان</label>
+              <input id="customer-address" type="text" class="input" placeholder="اختياري">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظات</label>
+              <textarea id="customer-notes" class="textarea" placeholder="اختياري"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="addCustomer()" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ العميل</button>
+          </div>
+        `
+      });
+    }
+
+    function addCustomer() {
+      const name = document.getElementById("customer-name")?.value?.trim();
+      const phone = document.getElementById("customer-phone")?.value?.trim() || "";
+      const creditLimit = parseNumber(document.getElementById("customer-credit-limit")?.value);
+      const address = document.getElementById("customer-address")?.value?.trim() || "";
+      const notes = document.getElementById("customer-notes")?.value?.trim() || "";
+
+      if (!name) {
+        showToast("اسم العميل إجباري", "error");
+        return;
+      }
+
+      state.data.customers.push({
+        id: uid("cust"),
+        name,
+        phone,
+        address,
+        notes,
+        creditLimit,
+        balance: 0,
+        payments: [],
+        manualDebts: [],
+        createdAt: new Date().toISOString()
+      });
+
+      enqueueSyncOperation({ type: "add_customer", payload: { name, phone } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة العميل بنجاح", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showEditCustomerModal(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+      if (!hasPermission("canManageCustomers")) {
+        showToast("لا تملك صلاحية تعديل العميل", "warning");
+        return;
+      }
+
+      openModal({
+        title: "تعديل بيانات العميل",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم العميل</label>
+              <input id="edit-customer-name" type="text" class="input" value="${escapeHtml(customer.name || "")}">
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الهاتف</label>
+                <input id="edit-customer-phone" type="text" class="input" value="${escapeHtml(customer.phone || "")}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الحد الائتماني</label>
+                <input id="edit-customer-credit-limit" type="number" class="input" value="${customer.creditLimit ?? 0}">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">العنوان</label>
+              <input id="edit-customer-address" type="text" class="input" value="${escapeHtml(customer.address || "")}">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظات</label>
+              <textarea id="edit-customer-notes" class="textarea">${escapeHtml(customer.notes || "")}</textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveEditedCustomer('${customerId}')" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ التعديل</button>
+          </div>
+        `
+      });
+    }
+
+    function saveEditedCustomer(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+
+      const name = document.getElementById("edit-customer-name")?.value?.trim();
+      if (!name) {
+        showToast("اسم العميل إجباري", "error");
+        return;
+      }
+
+      customer.name = name;
+      customer.phone = document.getElementById("edit-customer-phone")?.value?.trim() || "";
+      customer.creditLimit = parseNumber(document.getElementById("edit-customer-credit-limit")?.value);
+      customer.address = document.getElementById("edit-customer-address")?.value?.trim() || "";
+      customer.notes = document.getElementById("edit-customer-notes")?.value?.trim() || "";
+
+      enqueueSyncOperation({ type: "edit_customer", payload: { customerId, name: customer.name } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تم تحديث بيانات العميل", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function deleteCustomer(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+
+      if (!hasPermission("canManageCustomers")) {
+        showToast("لا تملك صلاحية حذف العميل", "warning");
+        return;
+      }
+
+      confirmDialog({
+        title: "حذف العميل",
+        message: `سيتم حذف العميل "${customer.name}" مع فواتيره ودفعاته وديونه. هل تريد المتابعة؟`,
+        confirmText: "حذف نهائي",
+        cancelText: "إلغاء",
+        type: "danger",
+        onConfirm: () => {
+          state.data.customers = state.data.customers.filter(c => c.id !== customerId);
+          state.data.invoices = state.data.invoices.filter(i => i.customerId !== customerId);
+          enqueueSyncOperation({ type: "delete_customer", payload: { customerId } });
+
+          if (state.selectedCustomerId === customerId) {
+            state.selectedCustomerId = null;
+            state.currentScreen = "customers";
+          }
+
+          saveAppState();
+          render();
+          showToast("تم حذف العميل", "success");
+          if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+        }
+      });
+    }
+
+    function showInvoiceModal(customerId = "") {
+      if (!hasPermission("canAddInvoice")) {
+        showToast("لا تملك صلاحية إنشاء فاتورة", "warning");
+        return;
+      }
+
+      const customerOptions = state.data.customers.map(c =>
+        `<option value="${c.id}" ${c.id === customerId ? "selected" : ""}>${escapeHtml(c.name)}</option>`
+      ).join("");
+
+      openModal({
+        title: "إنشاء فاتورة جديدة",
+        maxWidth: "920px",
+        body: `
+          <div class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">العميل</label>
+                <select id="invoice-customer-id" class="select">
+                  <option value="">اختر العميل</option>
+                  ${customerOptions}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">التاريخ</label>
+                <input id="invoice-date" type="datetime-local" class="input" value="${todayISO()}">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">رقم الفاتورة</label>
+                <input id="invoice-number" type="text" class="input" value="${state.data.settings.invoicePrefix || 'INV'}-${Date.now()}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الخصم</label>
+                <input id="invoice-discount" type="number" class="input" value="0" oninput="recalculateInvoiceComposer()">
+              </div>
+            </div>
+
+            <div class="section-card p-4 rounded-[24px]">
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <div class="font-extrabold text-slate-800">أصناف الفاتورة</div>
+                <button onclick="addInvoiceComposerItem()" class="btn text-white px-3 py-2 rounded-xl text-sm" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">
+                  <i class="fas fa-plus ml-1"></i> إضافة صنف
+                </button>
+              </div>
+              <div id="invoice-composer-items" class="space-y-3"></div>
+            </div>
+
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div class="bg-slate-50 border border-slate-200 rounded-[22px] p-4">
+                <div class="text-sm text-slate-500">الإجمالي</div>
+                <div id="invoice-subtotal-view" class="text-2xl font-black text-slate-800 mt-2">0 ${state.data.settings.currency}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-[22px] p-4">
+                <div class="text-sm text-slate-500">بعد الخصم</div>
+                <div id="invoice-total-view" class="text-2xl font-black mt-2" style="color:var(--primary)">0 ${state.data.settings.currency}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-[22px] p-4">
+                <div class="text-sm text-slate-500">المبلغ المدفوع</div>
+                <input id="invoice-paid-amount" type="number" class="input mt-2" value="0" oninput="recalculateInvoiceComposer()">
+              </div>
+            </div>
+
+            <div class="bg-red-50 border border-red-100 rounded-[22px] p-4">
+              <div class="text-sm text-red-600 font-bold">المتبقي الذي سيتحول تلقائيًا إلى دين</div>
+              <div id="invoice-remaining-view" class="text-2xl font-black text-red-600 mt-2">0 ${state.data.settings.currency}</div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظة</label>
+              <textarea id="invoice-note" class="textarea" placeholder="اختياري"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveInvoice()" class="btn flex-1 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold">حفظ الفاتورة</button>
+          </div>
+        `
+      });
+
+      addInvoiceComposerItem();
+    }
+
+    function addInvoiceComposerItem(item = null) {
+      const wrapper = document.getElementById("invoice-composer-items");
+      if (!wrapper) return;
+
+      const rowId = uid("invitem");
+      const row = document.createElement("div");
+      row.className = "grid sm:grid-cols-12 gap-3 items-end";
+      row.id = rowId;
+
+      row.innerHTML = `
+        <div class="sm:col-span-5">
+          <label class="block text-xs font-bold text-slate-600 mb-1">اسم الصنف</label>
+          <input type="text" class="input inv-item-name" value="${escapeHtml(item?.name || "")}" placeholder="مثال: دفتر">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 mb-1">الكمية</label>
+          <input type="number" min="1" step="1" class="input inv-item-qty" value="${item?.qty || 1}" oninput="recalculateInvoiceComposer()">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 mb-1">السعر</label>
+          <input type="number" min="0" step="0.01" class="input inv-item-price" value="${item?.price || 0}" oninput="recalculateInvoiceComposer()">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 mb-1">الإجمالي</label>
+          <input type="text" class="input inv-item-total !bg-slate-50" value="0" readonly>
+        </div>
+        <div class="sm:col-span-1">
+          <button onclick="removeInvoiceComposerItem('${rowId}')" class="w-full h-[48px] rounded-2xl bg-red-50 hover:bg-red-100 text-red-600">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+
+      wrapper.appendChild(row);
+      recalculateInvoiceComposer();
+    }
+
+    function removeInvoiceComposerItem(rowId) {
+      document.getElementById(rowId)?.remove();
+      recalculateInvoiceComposer();
+    }
+
+    function recalculateInvoiceComposer() {
+      const rows = [...document.querySelectorAll("#invoice-composer-items > div")];
+      let subtotal = 0;
+
+      rows.forEach(row => {
+        const qty = parseNumber(row.querySelector(".inv-item-qty")?.value);
+        const price = parseNumber(row.querySelector(".inv-item-price")?.value);
+        const rowTotal = qty * price;
+        const totalInput = row.querySelector(".inv-item-total");
+        if (totalInput) totalInput.value = rowTotal.toFixed(2);
+        subtotal += rowTotal;
+      });
+
+      const discount = parseNumber(document.getElementById("invoice-discount")?.value);
+      const paid = parseNumber(document.getElementById("invoice-paid-amount")?.value);
+      const total = Math.max(0, subtotal - discount);
+      const remaining = Math.max(0, total - paid);
+
+      const subtotalView = document.getElementById("invoice-subtotal-view");
+      const totalView = document.getElementById("invoice-total-view");
+      const remainingView = document.getElementById("invoice-remaining-view");
+
+      if (subtotalView) subtotalView.textContent = formatCurrency(subtotal);
+      if (totalView) totalView.textContent = formatCurrency(total);
+      if (remainingView) remainingView.textContent = formatCurrency(remaining);
+    }
+
+    function saveInvoice() {
+      const customerId = document.getElementById("invoice-customer-id")?.value;
+      const invoiceNumber = document.getElementById("invoice-number")?.value?.trim() || `${state.data.settings.invoicePrefix || "INV"}-${Date.now()}`;
+      const date = document.getElementById("invoice-date")?.value
+        ? new Date(document.getElementById("invoice-date").value).toISOString()
+        : new Date().toISOString();
+      const note = document.getElementById("invoice-note")?.value?.trim() || "";
+      const discount = parseNumber(document.getElementById("invoice-discount")?.value);
+      const paidAmount = parseNumber(document.getElementById("invoice-paid-amount")?.value);
+
+      if (!customerId) {
+        showToast("اختر العميل أولاً", "error");
+        return;
+      }
+
+      const customer = getCustomerById(customerId);
+      if (!customer) {
+        showToast("العميل غير موجود", "error");
+        return;
+      }
+
+      const rows = [...document.querySelectorAll("#invoice-composer-items > div")];
+      const items = rows.map(row => {
+        const name = row.querySelector(".inv-item-name")?.value?.trim() || "";
+        const qty = parseNumber(row.querySelector(".inv-item-qty")?.value);
+        const price = parseNumber(row.querySelector(".inv-item-price")?.value);
+        const total = qty * price;
+        return { name, qty, price, total };
+      }).filter(item => item.name && item.qty > 0);
+
+      if (!items.length) {
+        showToast("أضف صنفًا واحدًا على الأقل", "error");
+        return;
+      }
+
+      const subtotal = items.reduce((a, b) => a + b.total, 0);
+      const total = Math.max(0, subtotal - discount);
+      const remaining = Math.max(0, total - paidAmount);
+
+      state.data.invoices.push({
+        id: uid("invoice"),
+        invoiceNumber,
+        customerId,
+        date,
+        items,
+        subtotal,
+        discount,
+        total,
+        paidAmount,
+        remainingAmount: remaining,
+        note,
+        createdAt: new Date().toISOString(),
+        createdBy: state.session.userId
+      });
+
+      enqueueSyncOperation({
+        type: "add_invoice",
+        payload: { invoiceNumber, customerId, total, remaining }
+      });
+
+      saveAppState();
+      closeModal();
+      render();
+
+      if (remaining > 0) {
+        showToast(`تم حفظ الفاتورة، والمتبقي ${formatCurrency(remaining)} سُجل كدين على العميل`, "warning", 4200);
+      } else {
+        showToast("تم حفظ الفاتورة بنجاح", "success");
+      }
+
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showPaymentModal(customerId = "") {
+      if (!hasPermission("canAddPayment")) {
+        showToast("لا تملك صلاحية إضافة دفعة", "warning");
+        return;
+      }
+
+      const customerOptions = state.data.customers.map(c =>
+        `<option value="${c.id}" ${c.id === customerId ? "selected" : ""}>${escapeHtml(c.name)}</option>`
+      ).join("");
+
+      openModal({
+        title: "إضافة دفعة عميل",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">العميل</label>
+              <select id="payment-customer-id" class="select">
+                <option value="">اختر العميل</option>
+                ${customerOptions}
+              </select>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">المبلغ</label>
+                <input id="payment-amount" type="number" class="input" placeholder="0">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">التاريخ</label>
+                <input id="payment-date" type="datetime-local" class="input" value="${todayISO()}">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظة</label>
+              <textarea id="payment-note" class="textarea" placeholder="مثال: دفعة نقدية"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="savePayment()" class="btn flex-1 py-3 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-extrabold">حفظ الدفعة</button>
+          </div>
+        `
+      });
+    }
+
+    function savePayment() {
+      const customerId = document.getElementById("payment-customer-id")?.value;
+      const amount = parseNumber(document.getElementById("payment-amount")?.value);
+      const date = document.getElementById("payment-date")?.value
+        ? new Date(document.getElementById("payment-date").value).toISOString()
+        : new Date().toISOString();
+      const note = document.getElementById("payment-note")?.value?.trim() || "";
+
+      if (!customerId) {
+        showToast("اختر العميل أولاً", "error");
+        return;
+      }
+
+      if (amount <= 0) {
+        showToast("أدخل مبلغًا صحيحًا", "error");
+        return;
+      }
+
+      const customer = getCustomerById(customerId);
+      if (!customer) {
+        showToast("العميل غير موجود", "error");
+        return;
+      }
+
+      customer.payments = customer.payments || [];
+      customer.payments.push({
+        id: uid("payment"),
+        amount,
+        date,
+        note,
+        createdAt: new Date().toISOString(),
+        createdBy: state.session.userId
+      });
+
+      enqueueSyncOperation({ type: "add_payment", payload: { customerId, amount } });
+
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة الدفعة بنجاح", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showManualDebtModal(customerId = "") {
+      if (!hasPermission("canAddManualDebt")) {
+        showToast("لا تملك صلاحية إضافة دين مباشر", "warning");
+        return;
+      }
+
+      const customerOptions = state.data.customers.map(c =>
+        `<option value="${c.id}" ${c.id === customerId ? "selected" : ""}>${escapeHtml(c.name)}</option>`
+      ).join("");
+
+      openModal({
+        title: "إضافة دين مباشر",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">العميل</label>
+              <select id="manual-debt-customer-id" class="select">
+                <option value="">اختر العميل</option>
+                ${customerOptions}
+              </select>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">المبلغ</label>
+                <input id="manual-debt-amount" type="number" class="input" placeholder="0">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">التاريخ</label>
+                <input id="manual-debt-date" type="datetime-local" class="input" value="${todayISO()}">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">السبب / الملاحظة</label>
+              <textarea id="manual-debt-note" class="textarea" placeholder="مثال: دين مباشر خارج الفاتورة"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveManualDebt()" class="btn flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold">حفظ الدين</button>
+          </div>
+        `
+      });
+    }
+
+    function saveManualDebt() {
+      const customerId = document.getElementById("manual-debt-customer-id")?.value;
+      const amount = parseNumber(document.getElementById("manual-debt-amount")?.value);
+      const date = document.getElementById("manual-debt-date")?.value
+        ? new Date(document.getElementById("manual-debt-date").value).toISOString()
+        : new Date().toISOString();
+      const note = document.getElementById("manual-debt-note")?.value?.trim() || "";
+
+      if (!customerId) {
+        showToast("اختر العميل أولاً", "error");
+        return;
+      }
+      if (amount <= 0) {
+        showToast("أدخل مبلغًا صحيحًا", "error");
+        return;
+      }
+
+      const customer = getCustomerById(customerId);
+      if (!customer) {
+        showToast("العميل غير موجود", "error");
+        return;
+      }
+
+      customer.manualDebts = customer.manualDebts || [];
+      customer.manualDebts.push({
+        id: uid("mdebt"),
+        amount,
+        date,
+        note,
+        createdAt: new Date().toISOString(),
+        createdBy: state.session.userId
+      });
+
+      enqueueSyncOperation({ type: "add_manual_debt", payload: { customerId, amount } });
+
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة الدين بنجاح", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showAddPurchaseModal() {
+      if (!hasPermission("canManagePurchases")) {
+        showToast("لا تملك صلاحية إضافة مشتريات", "warning");
+        return;
+      }
+
+      openModal({
+        title: "إضافة مشتريات",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم المورد</label>
+              <input id="purchase-supplier-name" type="text" class="input" placeholder="مثال: مورد القرطاسية">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">السعر</label>
+                <input id="purchase-price" type="number" class="input" placeholder="0">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">التاريخ</label>
+                <input id="purchase-date" type="datetime-local" class="input" value="${todayISO()}">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظات</label>
+              <textarea id="purchase-notes" class="textarea" placeholder="اختياري"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="savePurchase()" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ</button>
+          </div>
+        `
+      });
+    }
+
+    function savePurchase() {
+      const supplierName = document.getElementById("purchase-supplier-name")?.value?.trim();
+      const price = parseNumber(document.getElementById("purchase-price")?.value);
+      const notes = document.getElementById("purchase-notes")?.value?.trim() || "";
+      const date = document.getElementById("purchase-date")?.value
+        ? new Date(document.getElementById("purchase-date").value).toISOString()
+        : new Date().toISOString();
+
+      if (!supplierName || price <= 0) {
+        showToast("أدخل اسم المورد والسعر", "error");
+        return;
+      }
+
+      state.data.purchases.push({
+        id: uid("purchase"),
+        supplierName,
+        price,
+        notes,
+        date,
+        createdAt: new Date().toISOString(),
+        createdBy: state.session.userId
+      });
+
+      enqueueSyncOperation({ type: "add_purchase", payload: { supplierName, price } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة المشتريات", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showEditPurchaseModal(id) {
+      const purchase = getPurchaseById(id);
+      if (!purchase) return;
+
+      openModal({
+        title: "تعديل مشتريات",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم المورد</label>
+              <input id="edit-purchase-supplier-name" type="text" class="input" value="${escapeHtml(purchase.supplierName || "")}">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">السعر</label>
+                <input id="edit-purchase-price" type="number" class="input" value="${purchase.price || 0}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">التاريخ</label>
+                <input id="edit-purchase-date" type="datetime-local" class="input" value="${todayISO()}">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظات</label>
+              <textarea id="edit-purchase-notes" class="textarea">${escapeHtml(purchase.notes || "")}</textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveEditedPurchase('${id}')" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ</button>
+          </div>
+        `
+      });
+    }
+
+    function saveEditedPurchase(id) {
+      const purchase = getPurchaseById(id);
+      if (!purchase) return;
+
+      const supplierName = document.getElementById("edit-purchase-supplier-name")?.value?.trim();
+      const price = parseNumber(document.getElementById("edit-purchase-price")?.value);
+      const notes = document.getElementById("edit-purchase-notes")?.value?.trim() || "";
+
+      if (!supplierName || price <= 0) {
+        showToast("أدخل اسم المورد والسعر", "error");
+        return;
+      }
+
+      purchase.supplierName = supplierName;
+      purchase.price = price;
+      purchase.notes = notes;
+      purchase.updatedAt = new Date().toISOString();
+
+      enqueueSyncOperation({ type: "edit_purchase", payload: { id, supplierName } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تم تعديل المشتريات", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function deletePurchase(id) {
+      const purchase = getPurchaseById(id);
+      if (!purchase) return;
+
+      confirmDialog({
+        title: "حذف المشتريات",
+        message: `هل تريد حذف شراء المورد "${purchase.supplierName}"؟`,
+        confirmText: "حذف",
+        cancelText: "إلغاء",
+        type: "danger",
+        onConfirm: () => {
+          state.data.purchases = state.data.purchases.filter(p => p.id !== id);
+          enqueueSyncOperation({ type: "delete_purchase", payload: { id } });
+          saveAppState();
+          render();
+          showToast("تم حذف المشتريات", "success");
+          if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+        }
+      });
+    }
+
+    function showAddUserModal() {
+      openModal({
+        title: "إضافة مستخدم جديد",
+        maxWidth: "860px",
+        body: `
+          <div class="space-y-4">
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الاسم</label>
+                <input id="new-user-name" type="text" class="input">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">اسم المستخدم</label>
+                <input id="new-user-username" type="text" class="input">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+                <input id="new-user-password" type="text" class="input">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">الدور</label>
+              <select id="new-user-role" class="select" onchange="applyRolePresetToUserForm()">
+                <option value="user">موظف</option>
+                <option value="admin">مدير</option>
+              </select>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-3">
+              ${renderPermissionCheckboxes("new-user")}
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveNewUser()" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ المستخدم</button>
+          </div>
+        `
+      });
+
+      applyRolePresetToUserForm();
+    }
+
+    function applyRolePresetToUserForm() {
+      const role = document.getElementById("new-user-role")?.value || "user";
+      const perms = role === "admin" ? DEFAULT_USER_PERMISSIONS : EMPLOYEE_DEFAULT_PERMISSIONS;
+
+      Object.keys(DEFAULT_USER_PERMISSIONS).forEach(key => {
+        const el = document.getElementById(`new-user-${key}`);
+        if (el) el.checked = !!perms[key];
+      });
+    }
+
+    function saveNewUser() {
+      const name = document.getElementById("new-user-name")?.value?.trim();
+      const username = document.getElementById("new-user-username")?.value?.trim();
+      const password = document.getElementById("new-user-password")?.value?.trim();
+      const role = document.getElementById("new-user-role")?.value || "user";
+      const permissions = collectPermissionsFromForm("new-user");
+
+      if (!name || !username || !password) {
+        showToast("يرجى تعبئة الاسم واسم المستخدم وكلمة المرور", "error");
+        return;
+      }
+
+      if (state.data.users.some(u => u.username === username)) {
+        showToast("اسم المستخدم مستخدم بالفعل", "error");
+        return;
+      }
+
+      state.data.users.push({
+        id: uid("user"),
+        name,
+        username,
+        password,
+        role,
+        isActive: true,
+        permissions,
+        createdAt: new Date().toISOString()
+      });
+
+      enqueueSyncOperation({ type: "add_user", payload: { username, role } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة المستخدم بنجاح", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function showEditUserModal(userId) {
+      const user = state.data.users.find(u => u.id === userId);
+      if (!user) return;
+
+      openModal({
+        title: `تعديل المستخدم ${user.name}`,
+        maxWidth: "860px",
+        body: `
+          <div class="space-y-4">
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الاسم</label>
+                <input id="edit-user-name" type="text" class="input" value="${escapeHtml(user.name || "")}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">اسم المستخدم</label>
+                <input id="edit-user-username" type="text" class="input" value="${escapeHtml(user.username || "")}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+                <input id="edit-user-password" type="text" class="input" value="${escapeHtml(user.password || "")}">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الدور</label>
+                <select id="edit-user-role" class="select">
+                  <option value="user" ${user.role === "user" ? "selected" : ""}>موظف</option>
+                  <option value="admin" ${user.role === "admin" ? "selected" : ""}>مدير</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">الحالة</label>
+                <select id="edit-user-status" class="select">
+                  <option value="active" ${user.isActive ? "selected" : ""}>نشط</option>
+                  <option value="inactive" ${!user.isActive ? "selected" : ""}>معطل</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-3">
+              ${renderPermissionCheckboxes("edit-user", user.permissions || EMPLOYEE_DEFAULT_PERMISSIONS)}
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveEditedUser('${userId}')" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">حفظ التعديل</button>
+          </div>
+        `
+      });
+    }
+
+    function saveEditedUser(userId) {
+      const user = state.data.users.find(u => u.id === userId);
+      if (!user) return;
+
+      const name = document.getElementById("edit-user-name")?.value?.trim();
+      const username = document.getElementById("edit-user-username")?.value?.trim();
+      const password = document.getElementById("edit-user-password")?.value?.trim();
+      const role = document.getElementById("edit-user-role")?.value || "user";
+      const isActive = document.getElementById("edit-user-status")?.value === "active";
+      const permissions = collectPermissionsFromForm("edit-user");
+
+      if (!name || !username || !password) {
+        showToast("يرجى تعبئة البيانات الأساسية", "error");
+        return;
+      }
+
+      const duplicate = state.data.users.find(u => u.username === username && u.id !== userId);
+      if (duplicate) {
+        showToast("اسم المستخدم مستخدم بالفعل", "error");
+        return;
+      }
+
+      user.name = name;
+      user.username = username;
+      user.password = password;
+      user.role = role;
+      user.isActive = isActive;
+      user.permissions = permissions;
+      user.updatedAt = new Date().toISOString();
+
+      enqueueSyncOperation({ type: "edit_user", payload: { userId, username } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تم تعديل المستخدم", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function deleteUser(userId) {
+      const user = state.data.users.find(u => u.id === userId);
+      if (!user) return;
+
+      confirmDialog({
+        title: "حذف المستخدم",
+        message: `هل تريد حذف المستخدم "${user.name}" نهائيًا؟`,
+        confirmText: "حذف",
+        cancelText: "إلغاء",
+        type: "danger",
+        onConfirm: () => {
+          state.data.users = state.data.users.filter(u => u.id !== userId);
+          enqueueSyncOperation({ type: "delete_user", payload: { userId } });
+          saveAppState();
+          render();
+          showToast("تم حذف المستخدم", "success");
+          if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+        }
+      });
+    }
+
+    function showAddShortageModal() {
+      openModal({
+        title: "إضافة صنف ناقص",
+        body: `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">اسم الصنف</label>
+              <input id="shortage-name" type="text" class="input">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">الكمية المطلوبة</label>
+              <input id="shortage-qty" type="number" class="input" value="1">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ملاحظات</label>
+              <textarea id="shortage-note" class="textarea" placeholder="اختياري"></textarea>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إلغاء</button>
+            <button onclick="saveShortage()" class="btn flex-1 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold">حفظ</button>
+          </div>
+        `
+      });
+    }
+
+    function saveShortage() {
+      const name = document.getElementById("shortage-name")?.value?.trim();
+      const qty = parseNumber(document.getElementById("shortage-qty")?.value);
+      const note = document.getElementById("shortage-note")?.value?.trim() || "";
+
+      if (!name || qty <= 0) {
+        showToast("أدخل اسم الصنف والكمية", "error");
+        return;
+      }
+
+      state.data.shortages.push({
+        id: uid("shortage"),
+        name,
+        qty,
+        note,
+        createdAt: new Date().toISOString()
+      });
+
+      enqueueSyncOperation({ type: "add_shortage", payload: { name, qty } });
+      saveAppState();
+      closeModal();
+      render();
+      showToast("تمت إضافة الصنف الناقص", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function markShortageDone(id) {
+      state.data.shortages = state.data.shortages.filter(s => s.id !== id);
+      enqueueSyncOperation({ type: "done_shortage", payload: { id } });
+      saveAppState();
+      render();
+      showToast("تمت إزالة الصنف من النواقص", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function deleteShortage(id) {
+      state.data.shortages = state.data.shortages.filter(s => s.id !== id);
+      enqueueSyncOperation({ type: "delete_shortage", payload: { id } });
+      saveAppState();
+      render();
+      showToast("تم حذف الصنف الناقص", "success");
+      if (!isLocalOnlyMode() && navigator.onLine) syncQueueToCloud();
+    }
+
+    function buildInvoiceHTML(invoiceId, previewMode = false) {
+      const invoice = getInvoiceById(invoiceId);
+      if (!invoice) return "";
+
+      const customer = getCustomerById(invoice.customerId);
+      const totals = calculateInvoiceTotals(invoice);
+      const settings = state.data.settings;
+      const employeeName = settings.printEmployeeName ? getUserDisplayName(invoice.createdBy) : "";
+
+      const logoHtml = settings.logo
+        ? `<img src="${settings.logo}" style="width:100%;height:100%;object-fit:cover" crossorigin="anonymous">`
+        : `<div style="font-size:30px;color:${settings.primaryColor || '#1d4ed8'};font-weight:900"><i class="fas fa-store"></i></div>`;
+
+      return `
+        <div class="invoice-paper ${previewMode ? 'mobile-preview' : ''}">
+          <div class="invoice-head-strip">
+            <div style="font-weight:900;font-size:15px;color:${settings.primaryColor || '#1d4ed8'}">فاتورة احترافية</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span style="padding:6px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:800;font-size:12px">رقم #${escapeHtml(invoice.invoiceNumber)}</span>
+              <span style="padding:6px 10px;border-radius:999px;background:#f8fafc;color:#334155;font-weight:800;font-size:12px">${formatDate(invoice.date, false)}</span>
+            </div>
+          </div>
+
+          <div class="invoice-header">
+            <div class="invoice-brand">
+              <div class="invoice-logo">${logoHtml}</div>
+              <div>
+                <div class="invoice-title">${escapeHtml(settings.companyName || "")}</div>
+                <div class="invoice-subtitle">
+                  ${escapeHtml(settings.companySecondaryName || "")}${settings.companySecondaryName ? "<br>" : ""}
+                  ${escapeHtml(settings.shopAddress || "")}${settings.shopAddress ? "<br>" : ""}
+                  ${escapeHtml(settings.shopPhone || "")}
+                </div>
+              </div>
+            </div>
+
+            <div class="invoice-meta">
+              <div class="invoice-meta-row"><strong>رقم الفاتورة</strong><span>#${escapeHtml(invoice.invoiceNumber)}</span></div>
+              <div class="invoice-meta-row"><strong>التاريخ</strong><span>${formatDate(invoice.date)}</span></div>
+              <div class="invoice-meta-row"><strong>العميل</strong><span>${escapeHtml(customer?.name || "-")}</span></div>
+              <div class="invoice-meta-row"><strong>الهاتف</strong><span>${escapeHtml(customer?.phone || "-")}</span></div>
+              ${employeeName ? `<div class="invoice-meta-row"><strong>الموظف</strong><span>${escapeHtml(employeeName)}</span></div>` : ""}
+            </div>
+          </div>
+
+          <div style="border:1px solid #e2e8f0;border-radius:24px;overflow:hidden">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr>
+                  <th style="background:#f8fafc;padding:12px;border-bottom:1px solid #e2e8f0;text-align:right">الصنف</th>
+                  <th style="background:#f8fafc;padding:12px;border-bottom:1px solid #e2e8f0;text-align:right">الكمية</th>
+                  <th style="background:#f8fafc;padding:12px;border-bottom:1px solid #e2e8f0;text-align:right">السعر</th>
+                  <th style="background:#f8fafc;padding:12px;border-bottom:1px solid #e2e8f0;text-align:right">الإجمالي</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(invoice.items || []).map(item => `
+                  <tr>
+                    <td style="padding:12px;border-bottom:1px solid #eef2f7">${escapeHtml(item.name || "-")}</td>
+                    <td style="padding:12px;border-bottom:1px solid #eef2f7">${item.qty || 0}</td>
+                    <td style="padding:12px;border-bottom:1px solid #eef2f7">${formatCurrency(item.price || 0)}</td>
+                    <td style="padding:12px;border-bottom:1px solid #eef2f7">${formatCurrency(item.total || 0)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;gap:16px;margin-top:18px;align-items:flex-start;flex-wrap:wrap">
+            <div style="flex:1;border:1px solid #e2e8f0;border-radius:22px;padding:16px;min-height:120px">
+              <div style="font-weight:800;font-size:14px;margin-bottom:8px">ملاحظات</div>
+              <div style="font-size:13px;color:#475569;line-height:2">${escapeHtml(invoice.note || settings.footerNote || "")}</div>
+            </div>
+
+            <div style="width:330px;max-width:100%;border:1px solid #dbeafe;background:linear-gradient(180deg,#eff6ff,#ffffff);border-radius:24px;padding:18px">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #cbd5e1"><strong>الإجمالي الفرعي</strong><span>${formatCurrency(totals.subtotal)}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #cbd5e1"><strong>الخصم</strong><span>${formatCurrency(totals.discount)}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #cbd5e1"><strong>الإجمالي النهائي</strong><span>${formatCurrency(totals.total)}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #cbd5e1"><strong>المدفوع</strong><span style="color:#15803d">${formatCurrency(totals.paid)}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:900"><strong>المتبقي</strong><span style="color:#dc2626">${formatCurrency(totals.remaining)}</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:18px;text-align:center;color:#64748b;font-size:12px;font-weight:700">
+            ${escapeHtml(settings.footerNote || "شكرًا لتعاملكم معنا")}
+          </div>
+        </div>
+      `;
+    }
+
+    function openInvoicePreview(invoiceId) {
+      const html = buildInvoiceHTML(invoiceId, true);
+      if (!html) return;
+
+      const w = window.open("", "_blank");
+      if (!w) {
+        showToast("المتصفح منع فتح الصفحة الجديدة", "warning");
+        return;
+      }
+
+      w.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>معاينة الفاتورة</title>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+          <style>
+            body{margin:0;font-family:Cairo,Arial,sans-serif;background:#f8fafc}
+            .preview-shell{background:#f8fafc;min-height:100vh;padding:16px}
+            .preview-container{max-width:1100px;margin:0 auto}
+            .bar{position:sticky;top:0;background:#fff;padding:14px;border-bottom:1px solid #e2e8f0;display:flex;gap:10px;flex-wrap:wrap;z-index:10}
+            .btn{border:none;padding:12px 16px;border-radius:14px;font-weight:900;cursor:pointer}
+            .btn-dark{background:#0f172a;color:#fff}
+            .btn-red{background:#dc2626;color:#fff}
+            .btn-green{background:#16a34a;color:#fff}
+            .btn-blue{background:#2563eb;color:#fff}
+            .btn-emerald{background:#059669;color:#fff}
+            .card{background:#fff;border-radius:24px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08);margin-top:14px}
+          </style>
+        </head>
+        <body>
+          <div class="preview-shell">
+            <div class="preview-container">
+              <div class="bar">
+                <button class="btn btn-dark" onclick="window.print()">طباعة</button>
+                <button class="btn btn-red" onclick="window.opener.downloadInvoicePDF('${invoiceId}')">PDF</button>
+                <button class="btn btn-green" onclick="window.opener.downloadInvoiceImage('${invoiceId}')">صورة</button>
+                <button class="btn btn-blue" onclick="window.opener.downloadInvoiceWord('${invoiceId}')">Word</button>
+                <button class="btn btn-emerald" onclick="window.opener.downloadInvoiceExcel('${invoiceId}')">Excel</button>
+              </div>
+              <div class="card">${html}</div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      w.document.close();
+    }
+
+    function printInvoice(invoiceId) {
+      const html = buildInvoiceHTML(invoiceId);
+      if (!html) return;
+
+      const w = window.open("", "_blank");
+      w.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <title>فاتورة</title>
+          <style>body{margin:0;padding:20px;background:#fff;font-family:Cairo,Arial,sans-serif}</style>
+        </head>
+        <body>${html}</body>
+        </html>
+      `);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 300);
+    }
+
+    async function renderInvoiceCanvas(invoiceId) {
+      const root = document.getElementById("capture-root");
+      root.innerHTML = buildInvoiceHTML(invoiceId);
+      const element = root.firstElementChild;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        allowTaint: false
+      });
+      return { root, canvas };
+    }
+
+    async function downloadInvoicePDF(invoiceId) {
+      const invoice = getInvoiceById(invoiceId);
+      if (!invoice) return;
+
+      const { root, canvas } = await renderInvoiceCanvas(invoiceId);
+      const imgData = canvas.toDataURL("image/png");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imgWidth = 190;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 10;
+
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+      }
+
+      pdf.save(`${invoice.invoiceNumber}.pdf`);
+      root.innerHTML = "";
+      showToast("تم حفظ الفاتورة PDF", "success");
+    }
+
+    async function downloadInvoiceImage(invoiceId) {
+      const invoice = getInvoiceById(invoiceId);
+      if (!invoice) return;
+      const { root, canvas } = await renderInvoiceCanvas(invoiceId);
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `${invoice.invoiceNumber}.png`;
+      link.click();
+      root.innerHTML = "";
+      showToast("تم حفظ الفاتورة كصورة", "success");
+    }
+
+    function downloadInvoiceExcel(invoiceId) {
+      const invoice = getInvoiceById(invoiceId);
+      if (!invoice) return;
+      const customer = getCustomerById(invoice.customerId);
+      const totals = calculateInvoiceTotals(invoice);
+
+      const rows = [
+        ["اسم الشركة", state.data.settings.companyName || ""],
+        ["رقم الفاتورة", invoice.invoiceNumber || ""],
+        ["العميل", customer?.name || ""],
+        ["الهاتف", customer?.phone || ""],
+        ["التاريخ", formatDate(invoice.date)],
+        ...(state.data.settings.printEmployeeName ? [["الموظف", getUserDisplayName(invoice.createdBy)]] : []),
+        [],
+        ["الصنف", "الكمية", "السعر", "الإجمالي"],
+        ...(invoice.items || []).map(item => [item.name || "", item.qty || 0, item.price || 0, item.total || 0]),
+        [],
+        ["الإجمالي الفرعي", totals.subtotal],
+        ["الخصم", totals.discount],
+        ["الإجمالي النهائي", totals.total],
+        ["المدفوع", totals.paid],
+        ["المتبقي", totals.remaining],
+        ["الملاحظات", invoice.note || state.data.settings.footerNote || ""]
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "فاتورة");
+      XLSX.writeFile(wb, `${invoice.invoiceNumber}.xlsx`);
+      showToast("تم حفظ الفاتورة Excel", "success");
+    }
+
+    function downloadInvoiceWord(invoiceId) {
+      const invoice = getInvoiceById(invoiceId);
+      if (!invoice) return;
+      const customer = getCustomerById(invoice.customerId);
+      const totals = calculateInvoiceTotals(invoice);
+
+      const html = `
+        <html dir="rtl" lang="ar">
+        <head><meta charset="utf-8"></head>
+        <body>
+          <h2>${escapeHtml(state.data.settings.companyName || "")}</h2>
+          <p>رقم الفاتورة: ${escapeHtml(invoice.invoiceNumber || "")}</p>
+          <p>العميل: ${escapeHtml(customer?.name || "")}</p>
+          <p>الهاتف: ${escapeHtml(customer?.phone || "")}</p>
+          <p>التاريخ: ${escapeHtml(formatDate(invoice.date))}</p>
+          ${state.data.settings.printEmployeeName ? `<p>الموظف: ${escapeHtml(getUserDisplayName(invoice.createdBy))}</p>` : ""}
+          <table border="1" style="border-collapse:collapse;width:100%;text-align:right">
+            <tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+            ${(invoice.items || []).map(item => `
+              <tr>
+                <td>${escapeHtml(item.name || "")}</td>
+                <td>${item.qty || 0}</td>
+                <td>${escapeHtml(formatCurrency(item.price || 0))}</td>
+                <td>${escapeHtml(formatCurrency(item.total || 0))}</td>
+              </tr>
+            `).join("")}
+          </table>
+          <p>الإجمالي الفرعي: ${escapeHtml(formatCurrency(totals.subtotal))}</p>
+          <p>الخصم: ${escapeHtml(formatCurrency(totals.discount))}</p>
+          <p>الإجمالي النهائي: ${escapeHtml(formatCurrency(totals.total))}</p>
+          <p>المدفوع: ${escapeHtml(formatCurrency(totals.paid))}</p>
+          <p>المتبقي: ${escapeHtml(formatCurrency(totals.remaining))}</p>
+          <p>ملاحظات: ${escapeHtml(invoice.note || state.data.settings.footerNote || "")}</p>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', html], { type: "application/msword;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${invoice.invoiceNumber}.doc`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("تم حفظ الفاتورة Word", "success");
+    }
+
+    function buildCustomerStatementHTML(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return "";
+
+      const invoices = state.data.invoices.filter(i => i.customerId === customerId).sort((a,b)=> new Date(a.date)-new Date(b.date));
+      const payments = (customer.payments || []).slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+      const manualDebts = (customer.manualDebts || []).slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+      const balance = calculateCustomerBalance(customer);
+
+      const rows = [];
+
+      invoices.forEach(inv => {
+        const totals = calculateInvoiceTotals(inv);
+        rows.push({ date: inv.date, type: "فاتورة", note: `فاتورة رقم ${inv.invoiceNumber}`, debit: totals.remaining, credit: 0 });
+      });
+
+      manualDebts.forEach(d => {
+        rows.push({ date: d.date, type: "دين مباشر", note: d.note || "دين مباشر", debit: d.amount, credit: 0 });
+      });
+
+      payments.forEach(p => {
+        rows.push({ date: p.date, type: "دفعة", note: p.note || "دفعة عميل", debit: 0, credit: p.amount });
+      });
+
+      rows.sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+      return `
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <title>كشف حساب - ${escapeHtml(customer.name)}</title>
+          <style>
+            body{font-family:Arial,sans-serif;padding:20px;direction:rtl;color:#111}
+            h1,h2,p{margin:0 0 8px}
+            table{width:100%;border-collapse:collapse;margin-top:18px;font-size:12px}
+            th,td{border:1px solid #ddd;padding:8px;text-align:right}
+            th{background:#f3f4f6}
+          </style>
+        </head>
+        <body>
+          <h2>${escapeHtml(state.data.settings.companyName || "")}</h2>
+          <p><strong>العميل:</strong> ${escapeHtml(customer.name)}</p>
+          <p><strong>الهاتف:</strong> ${escapeHtml(customer.phone || "-")}</p>
+          <p><strong>الرصيد الحالي:</strong> ${balance} ${escapeHtml(state.data.settings.currency)}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>النوع</th>
+                <th>الملاحظة</th>
+                <th>مدين</th>
+                <th>دائن</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>${formatDate(r.date)}</td>
+                  <td>${escapeHtml(r.type)}</td>
+                  <td>${escapeHtml(r.note)}</td>
+                  <td>${r.debit ? formatCurrency(r.debit) : "-"}</td>
+                  <td>${r.credit ? formatCurrency(r.credit) : "-"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+    }
+
+    function printCustomerStatement(customerId) {
+      const html = buildCustomerStatementHTML(customerId);
+      if (!html) return;
+      const w = window.open("", "_blank");
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 300);
+    }
+
+    async function downloadCustomerPDF(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+
+      const invoices = state.data.invoices.filter(i => i.customerId === customerId).sort((a,b)=> new Date(a.date)-new Date(b.date));
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      pdf.setFontSize(16);
+      pdf.text(state.data.settings.companyName || "Store", 105, 14, { align: "center" });
+      pdf.setFontSize(11);
+      pdf.text(`Customer: ${customer.name}`, 14, 24);
+      pdf.text(`Phone: ${customer.phone || "-"}`, 14, 30);
+      pdf.text(`Balance: ${calculateCustomerBalance(customer)} ${state.data.settings.currency}`, 14, 36);
+
+      const body = invoices.map(inv => {
+        const totals = calculateInvoiceTotals(inv);
+        return [
+          new Date(inv.date).toLocaleDateString(),
+          inv.invoiceNumber,
+          String(totals.total),
+          String(totals.paid),
+          String(totals.remaining),
+          inv.note || "-"
+        ];
+      });
+
+      pdf.autoTable({
+        startY: 45,
+        head: [["Date", "Invoice #", "Total", "Paid", "Remaining", "Note"]],
+        body,
+        theme: "striped",
+        styles: { fontSize: 9, cellPadding: 2.5 },
+        headStyles: { fillStyle: [29, 78, 216] }
+      });
+
+      pdf.save(`${customer.name}_statement.pdf`);
+      showToast("تم حفظ كشف العميل PDF", "success");
+    }
+
+    function sendWhatsApp(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer || !customer.phone) {
+        showToast("لا يوجد رقم هاتف لهذا العميل", "warning");
+        return;
+      }
+
+      const balance = calculateCustomerBalance(customer);
+      const text = `تحية من ${state.data.settings.companyName}
+العميل: ${customer.name}
+رصيدك الحالي: ${balance} ${state.data.settings.currency}
+شكراً لتعاملكم معنا`;
+
+      const phone = customer.phone.replace(/[^\d]/g, "");
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    }
+
+    function openExportCustomerOptions(customerId) {
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+
+      openModal({
+        title: `تصدير كشف ${customer.name}`,
+        body: `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button onclick="closeModal(); printCustomerStatement('${customerId}')" class="btn p-4 rounded-[24px] bg-slate-100 hover:bg-slate-200 text-right border border-slate-200">
+              <div class="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center mb-3"><i class="fas fa-print"></i></div>
+              <div class="font-extrabold text-slate-800">طباعة</div>
+              <div class="text-xs text-slate-500 mt-1">كشف حساب جاهز</div>
+            </button>
+
+            <button onclick="closeModal(); downloadCustomerPDF('${customerId}')" class="btn p-4 rounded-[24px] bg-red-50 hover:bg-red-100 text-right border border-red-100">
+              <div class="w-12 h-12 rounded-2xl bg-red-500 text-white flex items-center justify-center mb-3"><i class="fas fa-file-pdf"></i></div>
+              <div class="font-extrabold text-slate-800">PDF</div>
+              <div class="text-xs text-slate-500 mt-1">كشف العميل PDF</div>
+            </button>
+
+            <button onclick="closeModal(); sendWhatsApp('${customerId}')" class="btn p-4 rounded-[24px] bg-green-50 hover:bg-green-100 text-right border border-green-100">
+              <div class="w-12 h-12 rounded-2xl bg-green-500 text-white flex items-center justify-center mb-3"><i class="fab fa-whatsapp"></i></div>
+              <div class="font-extrabold text-slate-800">واتساب</div>
+              <div class="text-xs text-slate-500 mt-1">إرسال الرصيد للعميل</div>
+            </button>
+          </div>
+        `
+      });
+    }
+
+    function openQuickActions() {
+      openModal({
+        title: "إجراءات سريعة",
+        body: `
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="closeModal(); showAddCustomerModal();" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mb-3"><i class="fas fa-user-plus"></i></div>
+              <div class="font-extrabold">عميل جديد</div>
+            </button>
+
+            <button onclick="closeModal(); showInvoiceModal();" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-3"><i class="fas fa-file-invoice"></i></div>
+              <div class="font-extrabold">فاتورة جديدة</div>
+            </button>
+
+            <button onclick="closeModal(); showPaymentModal();" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center mb-3"><i class="fas fa-hand-holding-dollar"></i></div>
+              <div class="font-extrabold">دفعة عميل</div>
+            </button>
+
+            <button onclick="closeModal(); showManualDebtModal();" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-3"><i class="fas fa-circle-plus"></i></div>
+              <div class="font-extrabold">إضافة دين</div>
+            </button>
+
+            <button onclick="closeModal(); showAddShortageModal();" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3"><i class="fas fa-box-open"></i></div>
+              <div class="font-extrabold">قائمة النواقص</div>
+            </button>
+
+            <button onclick="closeModal(); navigate('purchases');" class="btn fancy-card rounded-[24px] p-4 text-right">
+              <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-3"><i class="fas fa-cart-shopping"></i></div>
+              <div class="font-extrabold">المشتريات</div>
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            ${(state.data.shortages || []).slice(0,5).map(item => `
+              <div class="bg-white rounded-[20px] border border-slate-200 p-4">
+                <div class="flex justify-between items-center gap-4">
+                  <div>
+                    <div class="font-extrabold text-slate-800">${escapeHtml(item.name || "")}</div>
+                    <div class="text-sm text-slate-500 mt-1">الكمية المطلوبة: ${item.qty || 0}</div>
+                    ${item.note ? `<div class="text-xs text-slate-400 mt-1">${escapeHtml(item.note)}</div>` : ""}
+                  </div>
+
+                  <div class="flex gap-2">
+                    <button onclick="markShortageDone('${item.id}');closeModal();" class="px-4 py-2 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 font-bold">تم</button>
+                    <button onclick="deleteShortage('${item.id}');closeModal();" class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold">حذف</button>
+                  </div>
+                </div>
+              </div>
+            `).join("") || `<div class="text-center text-slate-400 py-6 bg-white rounded-[20px] border border-slate-100">لا توجد نواقص حالياً</div>`}
+          </div>
+        `
+      });
+    }
+
+    function openAlertsModal() {
+      const alerts = getAllAlerts();
+      openModal({
+        title: "التنبيهات",
+        maxWidth: "700px",
+        body: `
+          <div class="space-y-3">
+            ${alerts.length ? alerts.map(a => `
+              <button onclick="closeModal(); navigate('customerDetail',{customerId:'${a.customerId}'})" class="w-full text-right p-4 rounded-[22px] border border-slate-200 hover:border-slate-300 bg-white">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="font-extrabold ${a.type === 'overdue' ? 'text-red-600' : 'text-amber-600'}">${a.title}</div>
+                    <div class="text-sm text-slate-600 mt-1">${a.text}</div>
+                  </div>
+                  <div class="w-10 h-10 rounded-2xl ${a.type === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'} flex items-center justify-center shrink-0">
+                    <i class="fas ${a.type === 'overdue' ? 'fa-clock' : 'fa-credit-card'}"></i>
+                  </div>
+                </div>
+              </button>
+            `).join("") : `<div class="text-center text-slate-400 py-12">لا توجد تنبيهات حالياً</div>`}
+          </div>
+        `
+      });
+    }
+
+    function openSyncCenter() {
+      openModal({
+        title: "مركز المزامنة",
+        body: `
+          <div class="space-y-4">
+            <div class="section-card p-4 rounded-[24px]">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-extrabold text-slate-800">حالة الشبكة</div>
+                  <div class="text-sm text-slate-500 mt-1">${isLocalOnlyMode() ? "نسخة أوفلاين محلية" : (navigator.onLine ? "متصل بالإنترنت" : "غير متصل بالإنترنت")}</div>
+                </div>
+                <span class="badge ${isLocalOnlyMode() ? 'badge-slate' : (navigator.onLine ? 'badge-green' : 'badge-red')}">
+                  <i class="fas ${isLocalOnlyMode() ? 'fa-hard-drive' : (navigator.onLine ? 'fa-wifi' : 'fa-wifi-slash')}"></i>
+                  ${isLocalOnlyMode() ? 'محلي' : (navigator.onLine ? 'متصل' : 'أوفلاين')}
+                </span>
+              </div>
+            </div>
+
+            <div class="section-card p-4 rounded-[24px]">
+              <div class="font-extrabold text-slate-800">العمليات المعلقة</div>
+              <div class="text-sm text-slate-500 mt-1">عدد العمليات المنتظرة للمزامنة: ${state.queue.length}</div>
+            </div>
+          </div>
+        `,
+        footer: `
+          <div class="flex gap-3">
+            <button onclick="closeModal()" class="btn flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">إغلاق</button>
+            <button onclick="closeModal(); manualSync();" class="btn flex-1 py-3 rounded-2xl text-white font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--primary-2))">مزامنة الآن</button>
+          </div>
+        `
+      });
+    }
+
+    function exportBackup() {
+      const data = JSON.stringify({
+        settings: state.data.settings,
+        customers: state.data.customers,
+        invoices: state.data.invoices,
+        users: state.data.users,
+        shortages: state.data.shortages,
+        purchases: state.data.purchases,
+        exportedAt: new Date().toISOString(),
+        version: 6
+      }, null, 2);
+
+      const blob = new Blob([data], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fee_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+      showToast("تم تحميل النسخة الاحتياطية", "success");
+    }
+
+    function importBackup() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = event => {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (!imported.customers || !imported.settings) {
+              showToast("الملف غير صالح", "error");
+              return;
+            }
+
+            state.data.settings = { ...DEFAULT_SETTINGS, ...(imported.settings || {}) };
+            state.data.customers = imported.customers || [];
+            state.data.invoices = imported.invoices || [];
+            state.data.users = imported.users || state.data.users;
+            state.data.shortages = imported.shortages || [];
+            state.data.purchases = imported.purchases || [];
+
+            applyThemeFromSettings();
+            saveAppState();
+            render();
+            showToast("تم استيراد النسخة الاحتياطية بنجاح", "success");
+          } catch {
+            showToast("تعذر قراءة الملف", "error");
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      input.click();
+    }
+
+    function init() {
+      resetStateForLicense();
+
+      document.getElementById("loginBtn")?.addEventListener("click", handleLogin);
+      document.getElementById("employeeLoginBtn")?.addEventListener("click", handleEmployeeLogin);
+
+      document.getElementById("licenseKeyInput")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleLogin();
+      });
+      document.getElementById("employee-password")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleEmployeeLogin();
+      });
+
+      document.getElementById("goToLoginBtn")?.addEventListener("click", () => {
+        clearCachedLicenseState();
+        stopLicenseCountdown();
+        detachRealtimeSync();
+        setShell("login");
+        setLoginMode(currentLoginMode);
+      });
+
+      window.addEventListener("online", async () => {
+        updateConnectionUI();
+        if (!isLocalOnlyMode()) {
+          await syncQueueToCloud();
+          await attachRealtimeSync();
+        }
+        render();
+      });
+
+      window.addEventListener("offline", () => {
+        updateConnectionUI();
+        updateSyncStatusBar("offline");
+      });
+
+      window.onpopstate = function() {
+        if (state.screenStack.length > 1) {
+          state.screenStack.pop();
+          state.currentScreen = state.screenStack[state.screenStack.length - 1];
+          saveCurrentRoute();
+          render();
+        } else {
+          history.pushState(null, null, window.location.pathname);
+        }
+      };
+
+      history.pushState(null, null, window.location.pathname);
+      bootstrapLicenseFlow();
+      setLoginMode(currentLoginMode);
+
+      if (getCachedLicenseState()) {
+        pullFullStateFromCloud(true).then(() => {
+          render();
+        });
+      }
+    }
+
+    init();
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", async () => {
+        try {
+          const reg = await navigator.serviceWorker.register("./sw-fee.js");
+          console.log("SW registered", reg);
+          navigator.serviceWorker.addEventListener("message", event => {
+            console.log("SW message:", event.data);
+          });
+        } catch (e) {
+          console.error("SW registration failed", e);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
