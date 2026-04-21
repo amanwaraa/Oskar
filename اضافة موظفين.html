@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أدمن إنشاء الموظفين</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
+
+    :root{
+      --primary:#2563eb;
+      --primary2:#1d4ed8;
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e5e7eb;
+      --success:#16a34a;
+      --danger:#dc2626;
+      --warning:#d97706;
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+      --shadow-soft:0 8px 22px rgba(15,23,42,.06);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Cairo',sans-serif;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .hidden-force{ display:none !important; }
+
+    .input,.select{
+      width:100%;
+      min-height:52px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:#fff;
+      outline:none;
+      transition:.18s ease;
+      padding:12px 14px;
+      font-size:14px;
+      color:var(--text);
+    }
+
+    .input:focus,.select:focus{
+      border-color:#93c5fd;
+      box-shadow:0 0 0 4px rgba(37,99,235,.14);
+    }
+
+    .btn{
+      transition:.18s ease;
+      transform:translateY(0);
+    }
+
+    .btn:hover{ transform:translateY(-1px); }
+    .btn:active{ transform:scale(.985); }
+
+    .fancy-card{
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:28px;
+      box-shadow:var(--shadow-soft);
+    }
+
+    .glass-header{
+      background:rgba(255,255,255,.94);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid #e5e7eb;
+      box-shadow:0 8px 20px rgba(15,23,42,.05);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .badge-green{ background:rgba(34,197,94,.12); color:#15803d; }
+    .badge-red{ background:rgba(239,68,68,.12); color:#dc2626; }
+    .badge-blue{ background:rgba(59,130,246,.12); color:#1d4ed8; }
+    .badge-slate{ background:rgba(100,116,139,.12); color:#334155; }
+    .badge-purple{ background:rgba(139,92,246,.12); color:#6d28d9; }
+
+    .toast-wrap{
+      position:fixed;
+      top:16px;
+      left:16px;
+      right:16px;
+      z-index:100;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
+    }
+
+    .toast{
+      pointer-events:auto;
+      background:rgba(15,23,42,.94);
+      color:#fff;
+      border-radius:18px;
+      padding:14px 16px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      box-shadow:0 14px 40px rgba(2,6,23,.28);
+    }
+
+    .toast.success{ background:rgba(22,163,74,.96); }
+    .toast.error{ background:rgba(220,38,38,.96); }
+    .toast.warning{ background:rgba(245,158,11,.98); color:#111827; }
+
+    .login-shell{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:linear-gradient(180deg,#eef4ff 0%,#f8fbff 100%);
+    }
+
+    .section-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+      border:1px solid #e5e7eb;
+      border-radius:28px;
+      box-shadow:var(--shadow-soft);
+    }
+
+    .permission-card{
+      background:#f8fafc;
+      border:1px solid #e5e7eb;
+      border-radius:18px;
+      padding:14px;
+    }
+
+    ::-webkit-scrollbar{ width:7px; height:7px; }
+    ::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:999px; }
+  </style>
+</head>
+<body>
+  <div id="toast-root" class="toast-wrap"></div>
+
+  <div id="loginRoot" class="login-shell">
+    <div class="fancy-card w-full max-w-md p-6">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl text-white flex items-center justify-center text-2xl font-extrabold shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--primary2));">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold mt-4">دخول الأدمن</h1>
+        <p class="text-sm text-slate-500 mt-2">هذه الصفحة فقط لإنشاء الموظفين</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold mb-2">اسم المستخدم</label>
+          <input id="adminUsername" class="input" type="text" placeholder="اسم المستخدم">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2">كلمة المرور</label>
+          <input id="adminPassword" class="input" type="password" placeholder="كلمة المرور">
+        </div>
+
+        <div id="loginStatus" class="hidden-force text-sm rounded-xl p-3"></div>
+
+        <button id="loginBtn" class="btn w-full text-white py-4 rounded-2xl font-extrabold shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--primary2));">
+          دخول
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appRoot" class="hidden-force">
+    <header class="glass-header sticky top-0 z-40 p-4">
+      <div class="max-w-5xl mx-auto flex justify-between items-center gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-[20px] bg-blue-600 text-white flex items-center justify-center text-xl shadow-lg">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold">أدمن إنشاء الموظفين</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">إدخال مفتاح الشركة ثم إنشاء الموظف</p>
+          </div>
+        </div>
+
+        <button onclick="logoutAdmin()" class="btn bg-red-50 hover:bg-red-100 text-red-700 px-4 py-3 rounded-2xl font-bold">
+          <i class="fas fa-arrow-right-from-bracket ml-1"></i> خروج
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 space-y-6">
+      <section class="section-card p-6">
+        <div class="mb-5">
+          <h2 class="text-2xl font-extrabold">التحقق من مفتاح الشركة</h2>
+          <p class="text-sm text-slate-500 mt-1">أدخل المفتاح ثم اضغط فحص ليظهر اسم الشركة</p>
+        </div>
+
+        <div class="grid sm:grid-cols-[1fr_auto] gap-3">
+          <input id="companyLicenseKey" type="text" class="input" placeholder="أدخل مفتاح الشركة">
+          <button id="checkLicenseBtn" onclick="checkCompanyLicense()" class="btn bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-2xl font-extrabold min-h-[52px]">
+            فحص المفتاح
+          </button>
+        </div>
+
+        <div id="companyInfoBox" class="hidden-force mt-4 p-4 rounded-2xl border border-slate-200 bg-white">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div class="text-sm text-slate-500">اسم الشركة</div>
+              <div id="companyInfoName" class="text-xl font-extrabold text-slate-800 mt-1">-</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="companyInfoStatus" class="badge badge-green">فعال</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card p-6">
+        <div class="mb-5">
+          <h2 class="text-2xl font-extrabold">إنشاء موظف جديد</h2>
+          <p class="text-sm text-slate-500 mt-1">لن يتم الحفظ إلا بعد فحص مفتاح الشركة بنجاح</p>
+        </div>
+
+        <div class="space-y-5">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-bold mb-2">اسم الموظف</label>
+              <input id="empName" class="input" type="text" placeholder="اسم الموظف">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-2">اسم المستخدم</label>
+              <input id="empUsername" class="input" type="text" placeholder="اسم المستخدم">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-2">كلمة المرور</label>
+              <input id="empPassword" class="input" type="text" placeholder="كلمة المرور">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-2">رمز التفعيل</label>
+              <div class="flex gap-2">
+                <input id="empActivationCode" class="input" type="text" placeholder="رمز التفعيل">
+                <button type="button" onclick="generateActivationCode()" class="btn px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold">
+                  توليد
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-bold mb-2">الدور</label>
+              <select id="empRole" class="select">
+                <option value="user">موظف</option>
+                <option value="admin">مدير</option>
+              </select>
+            </div>
+
+            <div class="flex items-end">
+              <label class="flex items-center justify-between bg-white border border-slate-200 rounded-[22px] p-4 w-full">
+                <span class="font-bold text-sm">الحساب نشط</span>
+                <input id="empIsActive" type="checkbox" class="scale-125" checked>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div class="font-extrabold text-slate-800 mb-3">صلاحيات الموظف</div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">رؤية الأرقام المالية</span>
+                <input id="perm-canViewFinancials" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إضافة فاتورة</span>
+                <input id="perm-canAddInvoice" type="checkbox" class="scale-125" checked>
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">تعديل الفاتورة</span>
+                <input id="perm-canEditInvoice" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">حذف الفاتورة</span>
+                <input id="perm-canDeleteInvoice" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إضافة دفعة</span>
+                <input id="perm-canAddPayment" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إضافة دين مباشر</span>
+                <input id="perm-canAddManualDebt" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إدارة العملاء</span>
+                <input id="perm-canManageCustomers" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">رؤية التقارير</span>
+                <input id="perm-canViewReports" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إدارة المستخدمين</span>
+                <input id="perm-canManageUsers" type="checkbox" class="scale-125">
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">التصدير والطباعة</span>
+                <input id="perm-canExport" type="checkbox" class="scale-125" checked>
+              </label>
+
+              <label class="permission-card flex items-center justify-between">
+                <span class="font-bold text-sm">إدارة المشتريات</span>
+                <input id="perm-canManagePurchases" type="checkbox" class="scale-125">
+              </label>
+            </div>
+          </div>
+
+          <button id="saveEmployeeBtn" onclick="createEmployee()" class="btn w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-extrabold shadow-lg">
+            إنشاء الموظف
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    window.employeeAdminFirebase = {
+      initializeApp,
+      getDatabase,
+      ref,
+      get,
+      set
+    };
+  </script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnLAY7zQyBy7gUuL9wszt9aEhiJgvRmxI",
+      authDomain: "shop-d52dc.firebaseapp.com",
+      databaseURL: "https://shop-d52dc-default-rtdb.firebaseio.com",
+      projectId: "shop-d52dc",
+      storageBucket: "shop-d52dc.appspot.com",
+      messagingSenderId: "97580537866",
+      appId: "1:97580537866:web:abc46e5a2f527b6300a7f3",
+      measurementId: "G-956RQMBP42"
+    };
+
+    const ADMIN_USERNAME = "admin";
+    const ADMIN_PASSWORD = "admin123";
+    const ADMIN_SESSION_KEY = "fee_employee_admin_only_logged";
+    const LICENSES_PATH = "fee_licenses";
+    const EMPLOYEE_ACCOUNTS_PATH = "fee_employee_accounts";
+
+    let firebaseAppRef = null;
+    let firebaseDbRef = null;
+    let checkedLicenseData = null;
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function uid(prefix = "id") {
+      return prefix + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function randomKey(length = 6) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for (let i = 0; i < length; i++) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return out;
+    }
+
+    function generateActivationCode() {
+      document.getElementById("empActivationCode").value = "EMP-" + randomKey(6);
+    }
+
+    function showToast(message, type = "default", duration = 2800) {
+      const root = document.getElementById("toast-root");
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+
+      const icon =
+        type === "success" ? "fa-circle-check" :
+        type === "error" ? "fa-circle-xmark" :
+        type === "warning" ? "fa-triangle-exclamation" :
+        "fa-bell";
+
+      el.innerHTML = `
+        <div class="mt-0.5"><i class="fas ${icon} text-lg"></i></div>
+        <div class="flex-1">
+          <div class="font-bold text-sm">${escapeHtml(message)}</div>
+        </div>
+        <button class="opacity-80 hover:opacity-100" onclick="this.parentElement.remove()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      `;
+
+      root.appendChild(el);
+
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(-6px)";
+        setTimeout(() => el.remove(), 180);
+      }, duration);
+    }
+
+    function setLoginStatus(message = "", type = "info") {
+      const box = document.getElementById("loginStatus");
+      if (!message) {
+        box.className = "hidden-force text-sm rounded-xl p-3";
+        box.textContent = "";
+        return;
+      }
+
+      box.className = "text-sm rounded-xl p-3";
+      if (type === "error") box.classList.add("bg-red-50","text-red-700","border","border-red-200");
+      else if (type === "success") box.classList.add("bg-green-50","text-green-700","border","border-green-200");
+      else box.classList.add("bg-blue-50","text-blue-700","border","border-blue-200");
+
+      box.textContent = message;
+    }
+
+    async function ensureFirebaseReady() {
+      if (firebaseDbRef) return;
+      const fb = window.employeeAdminFirebase;
+      if (!fb) throw new Error("Firebase not ready");
+
+      try {
+        firebaseAppRef = fb.initializeApp(firebaseConfig, "employee-admin-only-page");
+      } catch {
+        firebaseAppRef = fb.initializeApp(firebaseConfig);
+      }
+
+      firebaseDbRef = fb.getDatabase(firebaseAppRef);
+    }
+
+    function setShell(isLoggedIn) {
+      document.getElementById("loginRoot").classList.toggle("hidden-force", isLoggedIn);
+      document.getElementById("appRoot").classList.toggle("hidden-force", !isLoggedIn);
+    }
+
+    function saveSession() {
+      localStorage.setItem(ADMIN_SESSION_KEY, "1");
+    }
+
+    function clearSession() {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+    }
+
+    function isLoggedIn() {
+      return localStorage.getItem(ADMIN_SESSION_KEY) === "1";
+    }
+
+    async function loginAdmin() {
+      setLoginStatus("");
+      const username = document.getElementById("adminUsername").value.trim();
+      const password = document.getElementById("adminPassword").value.trim();
+      const btn = document.getElementById("loginBtn");
+
+      if (!username || !password) {
+        setLoginStatus("يرجى إدخال اسم المستخدم وكلمة المرور", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin ml-2"></i> جارٍ الدخول...`;
+
+      try {
+        if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+          setLoginStatus("بيانات الأدمن غير صحيحة", "error");
+          return;
+        }
+
+        saveSession();
+        setShell(true);
+        showToast("تم تسجيل الدخول بنجاح", "success");
+      } catch (e) {
+        console.error(e);
+        setLoginStatus("حدث خطأ أثناء تسجيل الدخول", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "دخول";
+      }
+    }
+
+    function logoutAdmin() {
+      clearSession();
+      checkedLicenseData = null;
+      document.getElementById("companyInfoBox").classList.add("hidden-force");
+      setShell(false);
+      showToast("تم تسجيل الخروج", "success");
+    }
+
+    async function checkCompanyLicense() {
+      const key = document.getElementById("companyLicenseKey").value.trim();
+      const btn = document.getElementById("checkLicenseBtn");
+
+      if (!key) {
+        showToast("أدخل مفتاح الشركة أولاً", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin ml-2"></i> جارٍ الفحص...`;
+
+      try {
+        await ensureFirebaseReady();
+        const { ref, get } = window.employeeAdminFirebase;
+
+        const snap = await get(ref(firebaseDbRef, `${LICENSES_PATH}/${key}`));
+
+        if (!snap.exists()) {
+          checkedLicenseData = null;
+          document.getElementById("companyInfoBox").classList.add("hidden-force");
+          showToast("المفتاح غير موجود", "error");
+          return;
+        }
+
+        const data = snap.val() || {};
+        checkedLicenseData = {
+          key,
+          ...data
+        };
+
+        document.getElementById("companyInfoName").textContent = data.companyName || "بدون اسم";
+        const statusEl = document.getElementById("companyInfoStatus");
+
+        if (data.status === "active") {
+          statusEl.className = "badge badge-green";
+          statusEl.textContent = "فعال";
+        } else {
+          statusEl.className = "badge badge-red";
+          statusEl.textContent = "معطل";
+        }
+
+        document.getElementById("companyInfoBox").classList.remove("hidden-force");
+        showToast("تم التحقق من المفتاح", "success");
+      } catch (e) {
+        console.error(e);
+        checkedLicenseData = null;
+        showToast("تعذر فحص المفتاح", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "فحص المفتاح";
+      }
+    }
+
+    function collectPermissions() {
+      return {
+        canViewFinancials: !!document.getElementById("perm-canViewFinancials").checked,
+        canAddInvoice: !!document.getElementById("perm-canAddInvoice").checked,
+        canEditInvoice: !!document.getElementById("perm-canEditInvoice").checked,
+        canDeleteInvoice: !!document.getElementById("perm-canDeleteInvoice").checked,
+        canAddPayment: !!document.getElementById("perm-canAddPayment").checked,
+        canAddManualDebt: !!document.getElementById("perm-canAddManualDebt").checked,
+        canManageCustomers: !!document.getElementById("perm-canManageCustomers").checked,
+        canViewReports: !!document.getElementById("perm-canViewReports").checked,
+        canManageUsers: !!document.getElementById("perm-canManageUsers").checked,
+        canExport: !!document.getElementById("perm-canExport").checked,
+        canManagePurchases: !!document.getElementById("perm-canManagePurchases").checked
+      };
+    }
+
+    async function createEmployee() {
+      const saveBtn = document.getElementById("saveEmployeeBtn");
+
+      const name = document.getElementById("empName").value.trim();
+      const username = document.getElementById("empUsername").value.trim();
+      const password = document.getElementById("empPassword").value.trim();
+      const activationCode = document.getElementById("empActivationCode").value.trim();
+      const role = document.getElementById("empRole").value;
+      const isActive = !!document.getElementById("empIsActive").checked;
+      const permissions = collectPermissions();
+
+      if (!checkedLicenseData || !checkedLicenseData.key) {
+        showToast("يجب فحص مفتاح الشركة أولاً", "error");
+        return;
+      }
+
+      if (checkedLicenseData.status !== "active") {
+        showToast("هذا المفتاح غير فعال", "error");
+        return;
+      }
+
+      if (!name || !username || !password || !activationCode) {
+        showToast("يرجى تعبئة جميع بيانات الموظف", "error");
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin ml-2"></i> جارٍ الحفظ...`;
+
+      try {
+        await ensureFirebaseReady();
+        const { ref, get, set } = window.employeeAdminFirebase;
+
+        const existing = await get(ref(firebaseDbRef, `${EMPLOYEE_ACCOUNTS_PATH}/${username}`));
+        if (existing.exists()) {
+          showToast("اسم المستخدم موجود مسبقاً", "error");
+          return;
+        }
+
+        await set(ref(firebaseDbRef, `${EMPLOYEE_ACCOUNTS_PATH}/${username}`), {
+          id: uid("user"),
+          name,
+          username,
+          password,
+          activationCode,
+          companyKey: checkedLicenseData.key,
+          companyName: checkedLicenseData.companyName || "",
+          companyLogo: checkedLicenseData.logo || "",
+          licenseKey: checkedLicenseData.key,
+          cloudRootPath: `fee_cloud_data/${checkedLicenseData.key}`,
+          role,
+          isActive,
+          permissions,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+
+        document.getElementById("empName").value = "";
+        document.getElementById("empUsername").value = "";
+        document.getElementById("empPassword").value = "";
+        generateActivationCode();
+
+        showToast("تم إنشاء الموظف بنجاح", "success");
+      } catch (e) {
+        console.error(e);
+        showToast("تعذر إنشاء الموظف", "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "إنشاء الموظف";
+      }
+    }
+
+    function init() {
+      document.getElementById("loginBtn").addEventListener("click", loginAdmin);
+
+      document.getElementById("adminUsername").addEventListener("keydown", e => {
+        if (e.key === "Enter") loginAdmin();
+      });
+
+      document.getElementById("adminPassword").addEventListener("keydown", e => {
+        if (e.key === "Enter") loginAdmin();
+      });
+
+      if (isLoggedIn()) {
+        setShell(true);
+      } else {
+        setShell(false);
+      }
+
+      generateActivationCode();
+    }
+
+    init();
+  </script>
+</body>
+</html>
